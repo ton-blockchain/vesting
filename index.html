@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
+
+    <title>TON Vesting Wallet</title>
+
+    <script src="lib/tonweb-0.0.61.js"></script>
+    <!--    <script src="lib/tonconnect-ui-1.0.0-beta.5.min.js"></script>-->
+    <script src="https://unpkg.com/@tonconnect/ui@1.0.0-beta.5/dist/tonconnect-ui.min.js"></script>
+    <script src="js/check-smart-contract.js"></script>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+
+<div class="testnet-badge" style="display: none">
+    ATTENTION! This is the test network — don’t send real Toncoin!
+</div>
+
+<!--Header-->
+
+<div id="header">
+    <!-- Badge -->
+    <a href="https://ton.org">
+        <div id="header_logo"></div>
+    </a>
+    <div id="header_slash">/</div>
+    <div id="header_title">Vesting</div>
+
+    <!-- Header search -->
+
+    <div id="header_input-container">
+        <input id="header_input" type="text" placeholder="Enter address">
+
+        <svg class="header_input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
+             xmlns="http://www.w3.org/2000/svg">
+            <path d="M13.0666 17.8667C16.8958 17.8667 20 14.7625 20 10.9333C20 7.10416 16.8958 4 13.0666 4C9.23746 4 6.1333 7.10416 6.1333 10.9333C6.1333 14.7625 9.23746 17.8667 13.0666 17.8667Z"
+                  stroke="#98B2BF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M8 16L4 20" stroke="#98B2BF" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round"></path>
+        </svg>
+
+    </div>
+
+    <div id="header_grow"></div>
+
+    <!-- TON Connect Button -->
+    <div id="tonConnectButton"></div>
+</div>
+
+<!-- Main Screen -->
+
+<div id="mainScreen" class="screen">
+    <div class="main_header">
+        Vesting Manager
+    </div>
+
+    <div class="main_info">
+        Manage wallets with Toncoins locked for some time.
+    </div>
+
+    <div class="main_input-container">
+        <input class="main_input" placeholder="Enter address">
+
+        <svg class="main_input-icon" width="24" height="24" viewBox="0 0 24 24" fill="none"
+             xmlns="http://www.w3.org/2000/svg">
+            <path d="M13.0666 17.8667C16.8958 17.8667 20 14.7625 20 10.9333C20 7.10416 16.8958 4 13.0666 4C9.23746 4 6.1333 7.10416 6.1333 10.9333C6.1333 14.7625 9.23746 17.8667 13.0666 17.8667Z"
+                  stroke="#98B2BF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M8 16L4 20" stroke="#98B2BF" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round"></path>
+        </svg>
+    </div>
+</div>
+
+<!-- Loading Screen -->
+
+<div id="loadingScreen" class="screen">
+    <div class="loading"></div>
+</div>
+
+<!-- Address Screen-->
+
+<div id="addressScreen" class="screen">
+    <div class="address_header">Address</div>
+    <div id="address_userAddress"></div>
+
+    <div id="address_info"></div>
+
+    <div id="address_loading" class="loading"></div>
+
+    <button id="wallet_createButton" class="btn">Create new vesting for this user</button>
+
+    <div id="vesting_container"></div>
+</div>
+
+<!-- Create Screen -->
+
+<div id="createScreen" class="screen">
+    <div class="create_header">Create new vesting wallet for user</div>
+    <div id="create_userAddress"></div>
+
+    <div id="create_panel">
+        <div class="create_label">Vesting start time:</div>
+        <div class="create_input">
+            <input id="create_startTimeInput" type="datetime-local">
+        </div>
+        <div class="create_label">Vesting total amount (TON):</div>
+        <div class="create_input">
+            <input id="create_totalAmountInput" type="number">
+        </div>
+        <div class="create_label">Total vesting duration (days):</div>
+        <div class="create_input">
+            <input id="create_totalDurationInput" type="number">
+        </div>
+        <div class="create_label">Cliff duration (days):</div>
+        <div class="create_input">
+            <input id="create_cliffDurationInput" type="number">
+        </div>
+        <div class="create_label">Unlock period (days):</div>
+        <div class="create_input">
+            <input id="create_unlockPeriodInput" type="number">
+        </div>
+
+        <label id="encryptCommentCheckboxContainer" class="checkbox-container"> In masterchain (for direct validation)
+            <input type="checkbox" id="create_inMasterchainCheckbox">
+            <span class="checkmark"></span>
+        </label>
+
+        <div class="create_label">Whitelist:
+            <button id="create_addWhitelistButton" class="create_whitelist-btn">+</button>
+        </div>
+        <div id="create_whitelist-container" class="create_whitelist-container"></div>
+
+        <div id="create_error"></div>
+        <div id="create_info"></div>
+        <button id="create_createButton" class="btn">Create</button>
+    </div>
+    <div id="create_backBtn">Cancel</div>
+</div>
+
+<!-- Modal -->
+
+<div id="modal" style="display: none">
+
+    <!-- Add Whitelist Popup-->
+
+    <div id="addWhitelistPopup">
+        <div id="whitelist_label">
+            Enter Address:
+        </div>
+        <input id="whitelist_addressInput" type="text">
+        <div id="whitelist_info"></div>
+        <button id="whitelist_addButton" class="btn">Add</button>
+    </div>
+
+    <!-- Send Popup -->
+
+    <div id="sendPopup">
+        <input id="sendPopup_toAddressInput" placeholder="Enter destination address" class="sendPopup_input">
+        <input id="sendPopup_amountInput" placeholder="Enter amount" class="sendPopup_input">
+        <input id="sendPopup_commentInput" placeholder="Enter comment (optional)" class="sendPopup_input">
+        <button id="sendPopup_sendButton" class="btn">Send</button>
+    </div>
+</div>
+
+<script>
+    // UI COMMON
+
+    const $ = (selector) => document.querySelector(selector);
+    const $$ = (selector) => document.querySelectorAll(selector);
+
+    const toggle = (element, isVisible) => {
+        element.style.display = isVisible ? 'flex' : 'none';
+    }
+
+    function onInput(input, handler) {
+        input.addEventListener('change', handler);
+        input.addEventListener('input', handler);
+        input.addEventListener('cut', handler);
+        input.addEventListener('paste', handler);
+    }
+
+    const bold = (s) => {
+        return '<b>' + s + '</b>';
+    }
+
+    const scanLink = (address) => {
+        return `https://${IS_TESTNET ? 'testnet.' : ''}tonscan.org/address/${address}`;
+    }
+
+    let currentScreen = '';
+
+    const showScreen = (name) => {
+        const screens = ['mainScreen', 'addressScreen', 'createScreen', 'loadingScreen']
+        currentScreen = name;
+        for (const screen of screens) {
+            toggle($('#' + screen), screen === name);
+        }
+        $('#header_input-container').style.visibility = name !== 'mainScreen' ? 'visible' : 'hidden';
+        if (name === 'mainScreen') {
+            setTimeout(() => {
+                $('.main_input').focus();
+            }, 10);
+        }
+    }
+
+    showScreen('mainScreen');
+
+    const showPopup = (name) => {
+        const popups = ['addWhitelistPopup', 'sendPopup'];
+        toggle($('#modal'), true);
+
+        for (const popup of popups) {
+            toggle($('#' + popup), popup === name);
+        }
+    }
+
+    const hidePopup = () => {
+        toggle($('#modal'), false);
+    }
+
+    $('#modal').addEventListener('click', () => hidePopup());
+
+    // PAGE
+
+    const browserLang = navigator.language || navigator.userLanguage;
+    const lang = (browserLang === 'ru-RU') || (browserLang === 'ru') || (browserLang === 'be-BY') || (browserLang === 'be') || (browserLang === 'kk-KZ') || (browserLang === 'kk') ? 'ru' : 'en';
+
+    const IS_TESTNET = window.location.href.indexOf('testnet=true') > -1;
+
+    if (IS_TESTNET) {
+        $('.testnet-badge').style.display = 'block';
+        document.body.classList.add('testnet-padding');
+    }
+
+    // TONCONNECT
+
+    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+        manifestUrl: 'https://ton-blockchain.github.io/vesting/tonconnect-manifest.json',
+        buttonRootId: 'tonConnectButton'
+    });
+
+    tonConnectUI.uiOptions = {
+        uiPreferences: {
+            theme: TON_CONNECT_UI.THEME.LIGHT
+        }
+    };
+
+    const tonConnectUnsubscribe = tonConnectUI.onStatusChange(info => {
+        if (info === null) {
+            onWalletDisconnected();
+        } else if (info.account) {
+            onWalletConnected(info.account);
+        }
+    });
+
+    // TONWEB COMMON
+
+    const BN = TonWeb.utils.BN;
+    const fromNano = TonWeb.utils.fromNano;
+    const toNano = TonWeb.utils.toNano;
+    const TONCENTER_API_KEY = IS_TESTNET ? 'd843619b379084d133f061606beecbf72ae2bf60e0622e808f2a3f631673599b' : 'd843619b379084d133f061606beecbf72ae2bf60e0622e808f2a3f631673599b';
+    const TONCENTER_URL = IS_TESTNET ? 'https://testnet.toncenter.com/api/v2/jsonRPC' : 'https://toncenter.com/api/v2/jsonRPC';
+    const tonweb = new TonWeb(new TonWeb.HttpProvider(TONCENTER_URL, {apiKey: TONCENTER_API_KEY}));
+
+    // VESTING COMMON
+
+    const nowToInputValue = () => {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        return now.toISOString().slice(0, 16);
+    }
+
+    // in user's timezone
+    const formatDateTime = (timestamp) => {
+        return new Date(timestamp * 1000).toLocaleString();
+    }
+
+    const formatPeriod = (seconds) => {
+        const d = Math.floor(seconds / (3600 * 24));
+        const h = Math.floor(seconds % (3600 * 24) / 3600);
+        const m = Math.floor(seconds % 3600 / 60);
+        const s = Math.floor(seconds % 60);
+
+        const arr = [
+            d === 0 ? '' : d + ' days',
+            h === 0 ? '' : h + ' hours',
+            m === 0 ? '' : m + ' min',
+            s === 0 ? '' : s + ' sec'
+        ]
+
+        return arr.filter(s => s !== '').join(' ');
+    }
+
+    const formatAmount = (nano) => {
+        return fromNano(nano) + ' TON';
+    }
+
+    const formatVestingInfo = (info) => {
+        const cliffEndTime = info.vestingStartTime + info.cliffDuration;
+        const vestingEndTime = info.vestingStartTime + info.vestingTotalDuration;
+
+        const cliffAmount = info.vestingTotalAmount.mul(new BN(info.cliffDuration / info.unlockPeriod)).div(new BN(info.vestingTotalDuration / info.unlockPeriod));
+
+        const unlockAmount = info.unlockPeriod === info.vestingTotalDuration ? new BN(0) :
+            info.vestingTotalAmount.div(new BN(info.vestingTotalDuration / info.unlockPeriod));
+
+        const startsString = `Vesting starts at ${bold(formatDateTime(info.vestingStartTime))}.`;
+        const cliffString = info.cliffDuration ? ` Cliff period ends in ${bold(formatPeriod(info.cliffDuration))} at ${bold(formatDateTime(cliffEndTime))}, at this moment ${bold(formatAmount(cliffAmount))} will be unlocked.` : ` No cliff period.`;
+        const unlockString = info.unlockPeriod < info.vestingTotalDuration ? ` After that ${bold(formatAmount(unlockAmount))} will be unlock every ${bold(formatPeriod(info.unlockPeriod))}.` : ``;
+
+        return `${startsString} ${cliffString} ${unlockString}<br>
+        Total amount ${bold(formatAmount(info.vestingTotalAmount))} will be unlocked in ${bold(formatPeriod(info.vestingTotalDuration))} at ${bold(formatDateTime(vestingEndTime))}.
+`
+    }
+
+    const formatAddress = (address) => {
+        return `${address.substring(0, address.length / 2)}<br>${address.substring(address.length / 2)}`
+    }
+
+    const renderWhitelist = (container, list, senderAddressString, isCreateScreen) => {
+        const senderBadge = ` <div class="badge badge-blue">Sender</div>`;
+        const removeButton = (i) => isCreateScreen ? `<button class="create_whitelist-btn" onclick="removeWhitelist(${i})">-</button>` : ``;
+
+        let s = '';
+        for (let i = 0; i < list.length; i++) {
+            const address = list[i];
+            s += `<div class="create_whitelist-row">
+<div class="create_whitelist-num">${i + 1}.</div>
+<a class="create_whitelist-address" href="${scanLink(address)}" target="_blank">
+${formatAddress(address)}
+</a>
+${address === senderAddressString ? senderBadge : removeButton(i)}
+</div>`;
+        }
+        container.innerHTML = s;
+    }
+
+    // STATE
+
+    let currentAddress = null; // string user-friendly bounceable
+
+    let myAddress = ''; // user-friendly bounceable
+    let myPublicKey = ''; // hex
+    let userAddress = '';
+    let userPublicKey = ''; // hex
+
+    let vestingWallet; // VestingWalletV1
+
+    // NAVIGATE
+
+    let reloadTimeoutId;
+
+    const clear = () => {
+        currentAddress = null;
+        vestingWallet = null;
+        clearTimeout(reloadTimeoutId);
+    }
+
+    const goHome = () => {
+        clear();
+        window.history.pushState('', 'TON Vesting ', '#');
+        showScreen('mainScreen');
+    }
+
+    $('#header_title').addEventListener('click', () => {
+        goHome();
+    });
+
+    const setAddress = (address) => {
+        currentAddress = address;
+        vestingWallet = null;
+
+        $('.address_header').innerText = 'Address';
+        $('#address_info').innerText = '';
+        showScreen('addressScreen');
+        $('#address_userAddress').innerHTML = `<a href="${scanLink(address)}" target="_blank">${formatAddress(address)}</a>`;
+        toggle($('#wallet_createButton'), false);
+        toggle($('#vesting_container'), false);
+        toggle($('#address_loading'), true);
+
+        clearTimeout(reloadTimeoutId);
+
+        const loadAddress = async () => {
+            const walletInfo = await tonweb.provider.getWalletInfo(address);
+
+            if (address !== currentAddress) return;
+
+            console.log(walletInfo);
+
+            if (!walletInfo) {
+
+                toggle($('#address_loading'), false);
+                $('#address_info').innerText = 'Cant get this address. Try again..';
+                reloadTimeoutId = setTimeout(loadAddress, 5 * 1000); // reload after 5 seconds
+
+            } else if (walletInfo.account_state === 'uninitialized') {
+
+                toggle($('#address_loading'), false);
+                $('#address_info').innerText = 'Address uninitialized yet';
+                reloadTimeoutId = setTimeout(loadAddress, 5 * 1000); // reload after 5 seconds
+
+            } else if (walletInfo.wallet === true) {
+
+                toggle($('#address_loading'), false);
+                $('.address_header').innerText = 'Wallet';
+                toggle($('#wallet_createButton'), true);
+                $('#address_info').innerHTML = 'This is a normal wallet.<br>' +
+                    'You can create a vesting for this user.';
+
+            } else {
+                const addressInfo = await tonweb.provider.getAddressInfo(address);
+                if (address !== currentAddress) return;
+
+                const VestingWalletClass = TonWeb.LockupWallets.VestingWalletV1;
+                let vestingWalletCode = TonWeb.utils.bytesToBase64(TonWeb.utils.hexToBytes(VestingWalletClass.codeHex));
+
+                vestingWalletCode = 'te6cckECGgEAA7oAART/APSkE/S88sgLAQIBIAIDAgFIBAUDuPKDCNcYINMf0x/THwL4I7vyZO1E0NMf0x/T/zBauvKhUDO68qIC+QFAM/kQ8qP4ANs8INdKwAGOme1E7UXtR5Fb7WftZe1kjoLbPO1B7fEB8v+RMOL4QaT4Yds8ExQVA7DQbCIg10nBYJFb4AHQ0wMBcbCRW+D6QDDbPPhLUhDHBY60AdMfAYIQp3M6zbqOpNM/2zyCEPdzOs0BcIAYyMsFUATPFiP6AhPLassfyz/JgED7AJFb4uMOExQGAgEgBwgB2vhKUhDHBY7iAdMfAYIQclimm7qO0tM/jir6QH/IygAC+kQByMoHy//J0PhEECOBAQj0QfhkINdKwgAglQHUMNAB3rPmMIIQ8limmwFwgBjIywVQBM8WI/oCE8tqyx/LP8mAQPsA2zyRW+KRW+IVAgEgCQoCASAREgIBbgsMAgFiDQ4AGa3OdqJoQCBrkOuF/8AAGa8d9qJoQBBrkOuFj8ABS600bZ42/CJHDUCAhHpJN9KZEM5pA+n/mDeBKAG3gQFImHFZ8xhAEwIBag8QAA+iX7UTQ1wsfgEvosds8+kQByMoHy//J0PhEgQEI9ApvoTGEwEpukYts8+EX4RvhH+Ej4SfhK+Ev4RIEwINuYRts82zyBMWAH7tRNDTHwH4YdMfAfhi0/8B+GP0BAH4ZNQB0NM/Afhl0x8B+GbTHwH4Z9MfAfho+gAB+Gn6QAH4avpAAfhr0dECXNMH1NH4I9s8IMIAjpsiwAPy4GQh0NMD+kAx+kD4SlIgxwWzkl8E4w2RMOIB+wAWFwBm+Ej4R/hG+EXIyz/LH8sfyx/4SfoC+ErPFvhLzxbJ+ET4Q/hC+EHIyx/LH8v/9ADMye1UAGD4RfhGoFIQvJIwcOD4RfhIoFIQuZMw+Eng+En4SfhFE6H4R6kE+Eb4R6kEECOphKEC4CH6RAHIygfL/8nQ+ESBAQj0Cm+hMY9LMwFysMAC8uBlAfoAMXHXIfoAMfoAMdM/MdMfMdMAAcAA8uBm0wABk9Qw0N4B2zyOF9MfMCCCEE5zdEu6AYIQR2V0JLqx8uBn4w5wkl8D4iDCAJNy+wKRMOIYGQBIcfgzIG6SW3Dg0CDXSYMHuZJbcODXC/9/dMjLAsoHy//J0McFAKQg10nCAI5I0x8hwAAigwu6sSKBEAG6sSKCEEfVQ5G6sSKCEFlfB7y6sfLgZwHAACHXScIAsI4V0wcwIMBkIcB3sSHARLEBwFex8uBokTDikTDiBvN2LQ==';
+
+                console.log(addressInfo.code);
+
+                if (addressInfo.code === vestingWalletCode) {
+
+                        vestingWallet = new VestingWalletClass(tonweb.provider, {
+                        address: new TonWeb.utils.Address(address)
+                    });
+
+                    const lockedAmount = await vestingWallet.getLockedAmount(Math.floor(Date.now() / 1000));
+                    const vestingData = await vestingWallet.getVestingData();
+                    console.log(vestingData);
+
+                    vestingData.index = 0;
+                    vestingData.address = address;
+                    vestingData.balance = addressInfo.balance;
+                    vestingData.lockedAmount = lockedAmount;
+                    vestingData.ownerAddress = vestingData.ownerAddress.toString(true, true, true, IS_TESTNET);
+                    vestingData.vestingSenderAddress = vestingData.vestingSenderAddress.toString(true, true, true, IS_TESTNET);
+                    vestingData.whitelist = (await vestingWallet.getWhitelist()).map(address => address.toString(true, true, true, IS_TESTNET));
+                    if (address !== currentAddress) return;
+
+                    $('#address_info').innerText = '';
+                    toggle($('#address_loading'), false);
+                    $('.address_header').innerText = 'Vesting';
+                    toggle($('#vesting_container'), true);
+
+                    $('#vesting_container').innerHTML = '';
+                    $('#vesting_container').appendChild(renderVestingWallet(vestingData));
+
+                } else {
+
+                    toggle($('#address_loading'), false);
+                    $('#address_info').innerText = 'Unknown smart contract on this address';
+
+                }
+            }
+        }
+
+        $('#header_input').value = '';
+        $('.main_input').value = '';
+
+        loadAddress();
+    }
+
+    const onAddressInput = e => {
+        if (e.key === 'Enter') {
+            let addressString = e.target.value.trim();
+            if (!TonWeb.utils.Address.isValid(addressString)) {
+                alert('Invalid address');
+            } else {
+                const address = new TonWeb.utils.Address(addressString);
+                addressString = address.toString(true, true, true, IS_TESTNET);
+                window.history.pushState(addressString, 'TON Vesting - ' + addressString, '#' + addressString);
+                setAddress(addressString);
+            }
+        }
+    }
+
+    $('.main_input').addEventListener('keydown', onAddressInput);
+    $('#header_input').addEventListener('keydown', onAddressInput);
+
+    const processUrl = () => {
+        clear();
+
+        const addressFromUrl = window.location.hash.substring(1);
+        if (addressFromUrl) {
+            if (TonWeb.utils.Address.isValid(addressFromUrl)) {
+                setAddress(addressFromUrl);
+            } else {
+                showScreen('mainScreen')
+            }
+        } else {
+            showScreen('mainScreen')
+        }
+    }
+
+    processUrl();
+
+    window.onpopstate = () => processUrl();
+
+    // TONCONNECT CONNECT/DISCONNECT
+
+    const onWalletConnected = async account => {
+        myAddress = new TonWeb.utils.Address(account.address).toString(true, true, true, IS_TESTNET);
+        myPublicKey = account.publicKey;
+
+        console.log('my address ', myAddress);
+        console.log('my key ', myPublicKey);
+
+        if (currentScreen === 'addressScreen') {
+            setAddress(currentAddress);
+        }
+        hidePopup();
+    };
+
+    const onWalletDisconnected = () => {
+        if (currentScreen === 'createScreen' || currentScreen === 'addressScreen') {
+            setAddress(currentAddress);
+        }
+        hidePopup();
+        myAddress = null;
+        myPublicKey = null;
+    }
+
+    // WALLET SCREEN
+
+    $('#wallet_createButton').addEventListener('click', async (event) => {
+        if (!tonConnectUI.connected) {
+            alert('Connect wallet first');
+            return;
+        }
+        showScreen('loadingScreen');
+
+        let publicKey; // BN
+
+        try {
+            publicKey = await tonweb.provider.call2(currentAddress, 'get_public_key');
+        } catch (e) {
+            alert('Cant get publicKey of target wallet');
+            showScreen('addressScreen');
+            return;
+        }
+        userAddress = currentAddress;
+        userPublicKey = publicKey.toString(16);
+        if (userPublicKey.length % 2 !== 0) userPublicKey = '0' + userPublicKey;
+
+        console.log('user address ', userAddress);
+        console.log('user key ', userPublicKey);
+
+        renderCreateScreen();
+        showScreen('createScreen');
+    });
+
+    // VESTING SCREEN
+
+    const renderVestingWallet = (vestingWalletInfo) => {
+        const lockedAmount = vestingWalletInfo.lockedAmount;
+
+        const index = vestingWalletInfo.index;
+        const whitelist = [vestingWalletInfo.vestingSenderAddress].concat(vestingWalletInfo.whitelist);
+
+        const isSender = myAddress === vestingWalletInfo.vestingSenderAddress;
+        const isOwner = myAddress === vestingWalletInfo.ownerAddress;
+
+        const div = document.createElement('div');
+        div.innerHTML =
+            `
+<div class="vesting_panel">
+${isSender ? `<div class="badge panel-badge badge-blue">You are sender</div>` : ``}
+${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``}
+
+    <div class="vesting_key">
+        Vesting for user:
+    </div>
+    <div class="vesting_value">
+        <a href="${scanLink(vestingWalletInfo.ownerAddress)}" target="_blank">${formatAddress(vestingWalletInfo.ownerAddress)}</a>
+    </div>
+
+    <div class="vesting_key">
+        Current Balance:
+    </div>
+    <div class="vesting_value">
+        ${formatAmount(vestingWalletInfo.balance)}
+    </div>
+
+    <div class="vesting_key">
+        Available:
+    </div>
+    <div class="vesting_value">
+         ${formatAmount(vestingWalletInfo.vestingTotalAmount.sub(lockedAmount))}
+    </div>
+
+    <div class="vesting_key">
+        Locked:
+    </div>
+        <div class="vesting_value">
+         ${formatAmount(lockedAmount)}
+    </div>
+
+    <div class="vesting_key">
+        Total Vesting Amount:
+    </div>
+        <div class="vesting_value">
+         ${formatAmount(vestingWalletInfo.vestingTotalAmount)}
+    </div>
+
+    <div class="vesting_key">
+        Start Date:
+    </div>
+   <div class="vesting_value">
+         ${formatDateTime(vestingWalletInfo.vestingStartTime)}
+    </div>
+
+    <div class="vesting_key">
+        Total Locked Duration:
+    </div>
+   <div class="vesting_value">
+        ${formatPeriod(vestingWalletInfo.vestingTotalDuration)}
+    </div>
+
+    <div class="vesting_key">
+        Cliff Duration:
+    </div>
+   <div class="vesting_value">
+        ${vestingWalletInfo.cliffDuration === 0 ? 'No cliff' : formatPeriod(vestingWalletInfo.cliffDuration)}
+    </div>
+
+    <div class="vesting_key">
+        Unlock Period:
+    </div>
+   <div class="vesting_value">
+        Every ${formatPeriod(vestingWalletInfo.unlockPeriod)} ${vestingWalletInfo.cliffDuration > 0 ? 'after cliff period' : ''}
+    </div>
+
+    <div class="vesting_info">
+        ${formatVestingInfo(vestingWalletInfo)}
+    </div>
+
+    <div class="create_label">Whitelist:</div>
+    <div class="create_whitelist-container"></div>
+
+    ${isOwner ? `<button id="vesting_sendBtn${index}" class="btn">Send from Vesting</button>` : ``}
+    ${isSender ? `<button id="vesting_addWhitelistBtn${index}" class="btn">Add whitelist</button>` : ``}
+</div>`
+
+        renderWhitelist(div.querySelector('.create_whitelist-container'), whitelist, vestingWalletInfo.vestingSenderAddress.toString(true, true, true, IS_TESTNET), false);
+
+        // div.querySelector('#vesting_all-parameters-btn' + index).addEventListener('click', () => {
+        //     const needShow = $('#vesting_all-parameters-container' + index).style.display !== 'flex';
+        //     $('#vesting_all-parameters-btn' + index).innerText = needShow ? 'Hide all parameters' : 'Show all parameters';
+        //     toggle($('#vesting_all-parameters-container' + index), needShow);
+        // });
+
+        div.querySelector('#vesting_addWhitelistBtn' + index)?.addEventListener('click', () => {
+            showAddWhitelistPopup();
+        });
+
+        div.querySelector('#vesting_sendBtn' + index)?.addEventListener('click', () => {
+            showPopup('sendPopup');
+        });
+
+        return div;
+    }
+
+    // SEND
+
+    $('#sendPopup_sendButton').addEventListener('click', () => {
+        const toAddress = $('#sendPopup_toAddressInput').value;
+        if (!TonWeb.utils.Address.isValid(toAddress)) {
+            alert('Not valid address');
+            return;
+        }
+
+        let amount;
+        try {
+            amount = toNano($('#sendPopup_amountInput').value);
+        } catch (e) {
+            alert('Not valid amount');
+            return;
+        }
+
+        const comment = $('#sendPopup_commentInput').value
+
+        sendFromVesting(toAddress, amount, comment);
+
+    });
+
+    const sendFromVesting = async (toAddress, amountBN, textPayload) => {
+        const vestingWalletAddress = await vestingWallet.getAddress();
+        const payload = vestingWallet.createInternalTransfer({
+            address: toAddress,
+            amount: amountBN,
+            payload: textPayload
+        });
+        const payloadBase64 = TonWeb.utils.bytesToBase64(await payload.toBoc(false));
+        console.log('payload', payloadBase64);
+
+        const transaction = {
+            validUntil: Math.floor(Date.now() / 1000) + 60, // 1 minute
+            messages: [
+                {
+                    address: vestingWalletAddress.toString(true, true, true),
+                    amount: toNano('0.05'),
+                    payload: payloadBase64,  // raw one-cell BoC encoded in Base64
+                }
+            ]
+        }
+
+        try {
+            const result = await tonConnectUI.sendTransaction(transaction);
+            hidePopup();
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    // ADD WHITELIST POPUP
+
+    let addressForCheck = undefined;
+
+    const onWhitelistAddressInput = async () => {
+        const value = $('#whitelist_addressInput').value;
+        if (TonWeb.utils.Address.isValid(value)) {
+            addressForCheck = value;
+            $('#whitelist_info').innerText = 'Loading..';
+            const info = await checkSmartContract(tonweb, new TonWeb.utils.Address(value));
+            if (value === addressForCheck) {
+                $('#whitelist_info').innerText = info.text;
+            }
+        } else {
+            $('#whitelist_info').innerText = 'Invalid address';
+        }
+    }
+
+    onInput($('#whitelist_addressInput'), onWhitelistAddressInput);
+    onWhitelistAddressInput();
+
+    const showAddWhitelistPopup = () => {
+        $('#whitelist_addressInput').value = '';
+        $('#whitelist_info').innerText = '';
+        showPopup('addWhitelistPopup');
+    }
+
+
+    // CREATE SCREEN
+
+    const createState = {
+        info: null,
+        whitelistAddresses: [], // string[]
+    }
+
+    $('#create_backBtn').addEventListener('click', event => {
+        showScreen('addressScreen');
+    });
+
+    $('#create_createButton').addEventListener('click', async (event) => {
+        const wc = $('#create_inMasterchainCheckbox').checked ? -1 : 0;
+        console.log({wc});
+
+        const VestingWalletClass = TonWeb.LockupWallets.VestingWalletV1;
+        const vestingWallet = new VestingWalletClass(tonweb.provider, {
+            wc: wc,
+            publicKey: TonWeb.utils.hexToBytes(userPublicKey),
+            vestingStartTime: createState.info.vestingStartTime,
+            vestingTotalDuration: createState.info.vestingTotalDuration,
+            unlockPeriod: createState.info.unlockPeriod,
+            cliffDuration: createState.info.cliffDuration,
+            vestingTotalAmount: createState.info.vestingTotalAmount,
+            vestingSenderAddress: new TonWeb.utils.Address(myAddress),
+            ownerAddress: new TonWeb.utils.Address(userAddress)
+        });
+        const vestingWalletAddress = await vestingWallet.getAddress();
+        const addressString = vestingWalletAddress.toString(true, true, true, IS_TESTNET);
+        console.log('Vesting = ', addressString);
+        const stateInitCell = (await vestingWallet.createStateInit()).stateInit;
+        const stateInitBase64 = TonWeb.utils.bytesToBase64(await stateInitCell.toBoc(false));
+        console.log({stateInitBase64})
+        const addresses = createState.whitelistAddresses.map(addressString => new TonWeb.utils.Address(addressString));
+        const payload = addresses.length ? vestingWallet.createAddWhitelistBody({addresses}) : undefined;
+
+        const payloadBase64 = payload ? TonWeb.utils.bytesToBase64(await payload.toBoc(false)) : undefined;
+        console.log({payloadBase64});
+
+        const transaction = {
+            validUntil: Math.floor(Date.now() / 1000) + 60,
+            messages: [
+                {
+                    address: vestingWalletAddress.toString(true, true, true),
+                    amount: toNano('0.1'),
+                    payload: payloadBase64,  // raw one-cell BoC encoded in Base64
+                    stateInit: stateInitBase64 // raw once-cell BoC encoded in Base64.
+                }
+            ]
+        }
+
+        let isError = false;
+        try {
+            const result = await tonConnectUI.sendTransaction(transaction);
+        } catch (e) {
+            isError = true;
+            console.error(e);
+        }
+
+        if (!isError) {
+            window.history.pushState(addressString, 'TON Vesting - ' + addressString, '#' + addressString);
+            setAddress(addressString);
+        }
+    });
+
+    const validateCreate = () => {
+        const startTimeString = $('#create_startTimeInput').value;
+        const startTime = Math.floor(new Date(startTimeString).getTime() / 1000);
+
+        if ($('#create_totalAmountInput').value === '') {
+            throw 'Enter amount';
+        }
+
+        let amountNano;
+        try {
+            const amountString = $('#create_totalAmountInput').value;
+            amountNano = toNano(amountString);
+        } catch (e) {
+            throw 'Invalid amount';
+        }
+
+        const totalDurationDays = $('#create_totalDurationInput').value;
+        const totalDurationSeconds = Math.floor(totalDurationDays * 24 * 60 * 60);
+        const vestingEndTime = startTime + totalDurationSeconds;
+
+        const cliffDurationDays = $('#create_cliffDurationInput').value;
+        const cliffDurationSeconds = Math.floor(cliffDurationDays * 24 * 60 * 60);
+        const cliffEndTime = startTime + cliffDurationSeconds;
+
+        const unlockPeriodDays = $('#create_unlockPeriodInput').value;
+        const unlockPeriodSeconds = Math.floor(unlockPeriodDays * 24 * 60 * 60);
+
+        $('#create_createButton').innerText = 'Create';
+
+        if (!amountNano) {
+            throw 'Enter amount';
+        }
+
+        const require = (x, error) => {
+            if (isNaN(x) || x === undefined || x === null) {
+                throw error;
+            }
+        }
+
+        require(totalDurationDays, 'Enter Total Duration')
+        require(cliffDurationDays, 'Enter Cliff Duration')
+        require(unlockPeriodDays, 'Enter Unlock Period')
+
+        if (amountNano.lt(new TonWeb.utils.BN(1e9))) {
+            throw 'Minimum 1 TON';
+        }
+
+        if (totalDurationDays <= 0) {
+            throw 'Total Duration must be greater than zero';
+        }
+
+        if (new BN(totalDurationSeconds).gt(new BN(2).pow(new BN(32)))) {
+            throw 'Total Duration must be less than 135 years';
+        }
+
+        if (cliffDurationDays < 0) {
+            throw 'Cliff Duration must be greater than or equal to zero`';
+        }
+
+        if (cliffEndTime >= vestingEndTime) {
+            throw 'Total Duration must be greater than Cliff Duration';
+        }
+
+        if (unlockPeriodDays <= 0) {
+            throw 'Unlock Period must be greater than zero';
+        }
+
+        if (startTime + unlockPeriodSeconds > vestingEndTime) {
+            throw 'Unlock Period must be less than or equal to Total Duration';
+        }
+
+        if (totalDurationSeconds % unlockPeriodSeconds !== 0) {
+            throw 'Total Duration must be evenly divisible by Unlock Period';
+        }
+
+        if (cliffDurationSeconds % unlockPeriodSeconds !== 0) {
+            throw 'Cliff Duration must be evenly divisible by Unlock Period';
+        }
+
+        return {
+            vestingStartTime: startTime, // unixtime in seconds
+            vestingTotalDuration: totalDurationSeconds, // seconds
+            unlockPeriod: unlockPeriodSeconds, // seconds
+            cliffDuration: cliffDurationSeconds, // seconds
+            vestingTotalAmount: amountNano,
+            whitelist: createState.whitelistAddresses
+        }
+    }
+
+    const updateCreate = () => {
+        $('#create_createButton').disabled = true;
+
+        createState.info = null;
+        try {
+            createState.info = validateCreate();
+        } catch (e) {
+            $('#create_error').innerText = e;
+        }
+        toggle($('#create_error'), !Boolean(createState.info));
+        $('#create_createButton').disabled = !Boolean(createState.info);
+
+        $('#create_info').innerHTML = createState.info ? formatVestingInfo(createState.info) : '';
+    }
+
+    onInput($('#create_startTimeInput'), updateCreate);
+    onInput($('#create_totalAmountInput'), updateCreate);
+    onInput($('#create_totalDurationInput'), updateCreate);
+    onInput($('#create_cliffDurationInput'), updateCreate);
+    onInput($('#create_unlockPeriodInput'), updateCreate);
+
+    const renderCreateScreen = () => {
+        createState.whitelistAddresses = [];
+
+        $('#create_userAddress').innerHTML = `<a href="${scanLink(userAddress)}" target="_blank">${formatAddress(userAddress)}</a>`;
+
+        $('#create_inMasterchainCheckbox').checked = false;
+        $('#create_startTimeInput').value = nowToInputValue();
+
+        renderCreateWhitelist();
+        updateCreate();
+    }
+
+    // CREATE WHITELIST
+
+    const renderCreateWhitelist = () => {
+        renderWhitelist($('#create_whitelist-container'), [myAddress].concat(createState.whitelistAddresses), myAddress, true);
+    }
+
+    const removeWhitelist = (index) => {
+        createState.whitelistAddresses.splice(index - 1, 1);
+        renderCreateWhitelist();
+    }
+
+    $('#create_addWhitelistButton').addEventListener('click', () => {
+        showAddWhitelistPopup();
+    });
+
+    $('#addWhitelistPopup').addEventListener('click', e => e.stopImmediatePropagation());
+    $('#sendPopup').addEventListener('click', e => e.stopImmediatePropagation());
+
+    $('#whitelist_addButton').addEventListener('click', async () => {
+        hidePopup();
+
+        const newAddress = $('#whitelist_addressInput').value;
+
+        if (!TonWeb.utils.Address.isValid(newAddress)) {
+            return;
+        }
+
+        for (let address of createState.whitelistAddresses) {
+            if (new TonWeb.utils.Address(address).toString(false) === new TonWeb.utils.Address(newAddress).toString(false)) {
+                return;
+            }
+        }
+
+        if (currentScreen === 'createScreen') {
+
+            createState.whitelistAddresses.push(newAddress);
+            renderCreateWhitelist();
+
+        } else if (currentScreen === 'addressScreen') {
+
+            const vestingWalletAddress = await vestingWallet.getAddress();
+            const payload = vestingWallet.createAddWhitelistBody({addresses: [new TonWeb.utils.Address(newAddress)]});
+            const payloadBase64 = TonWeb.utils.bytesToBase64(await payload.toBoc(false));
+            console.log('payload', payloadBase64);
+
+            const transaction = {
+                validUntil: Math.floor(Date.now() / 1000) + 60,
+                messages: [
+                    {
+                        address: vestingWalletAddress.toString(true, true, true),
+                        amount: toNano('0.1'),
+                        payload: payloadBase64,  // raw one-cell BoC encoded in Base64
+                    }
+                ]
+            }
+
+            let isError = false;
+
+            try {
+                const result = await tonConnectUI.sendTransaction(transaction);
+            } catch (e) {
+                isError = true;
+                console.error(e);
+            }
+
+            if (!isError) {
+            }
+
+        }
+    });
+</script>
+
+</body>
+</html>
