@@ -718,15 +718,19 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
     // ADD WHITELIST POPUP
 
     let addressForCheck = undefined;
+    let oldAddressForCheck = undefined;
 
     const onWhitelistAddressInput = async () => {
         const value = $('#whitelist_addressInput').value;
         if (TonWeb.utils.Address.isValid(value)) {
             addressForCheck = value;
-            $('#whitelist_info').innerText = 'Loading..';
-            const info = await checkSmartContract(tonweb, new TonWeb.utils.Address(value));
-            if (value === addressForCheck) {
-                $('#whitelist_info').innerText = info.text;
+            if (oldAddressForCheck !== addressForCheck) {
+                oldAddressForCheck = addressForCheck;
+                $('#whitelist_info').innerText = 'Loading..';
+                const info = await checkSmartContract(tonweb, new TonWeb.utils.Address(value));
+                if (value === addressForCheck) {
+                    $('#whitelist_info').innerText = info.text;
+                }
             }
         } else {
             $('#whitelist_info').innerText = 'Invalid address';
@@ -954,6 +958,10 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         const newAddress = $('#whitelist_addressInput').value;
 
         if (!TonWeb.utils.Address.isValid(newAddress)) {
+            return;
+        }
+
+        if (new TonWeb.utils.Address(myAddress).toString(false) === new TonWeb.utils.Address(newAddress).toString(false)) {
             return;
         }
 
