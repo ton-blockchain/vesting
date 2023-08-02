@@ -700,8 +700,8 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
             validUntil: Math.floor(Date.now() / 1000) + 60, // 1 minute
             messages: [
                 {
-                    address: vestingWalletAddress.toString(true, true, true),
-                    amount: toNano('0.05'),
+                    address: vestingWalletAddress.toString(false),
+                    amount: toNano('0.05').toString(),
                     payload: payloadBase64,  // raw one-cell BoC encoded in Base64
                 }
             ]
@@ -786,12 +786,14 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         const payloadBase64 = payload ? TonWeb.utils.bytesToBase64(await payload.toBoc(false)) : undefined;
         console.log({payloadBase64});
 
+
+
         const transaction = {
             validUntil: Math.floor(Date.now() / 1000) + 60,
             messages: [
                 {
-                    address: vestingWalletAddress.toString(true, true, true),
-                    amount: toNano('0.1'),
+                    address: vestingWalletAddress.toString(false),
+                    amount: toNano('0.1').toString(),
                     payload: payloadBase64,  // raw one-cell BoC encoded in Base64
                     stateInit: stateInitBase64 // raw once-cell BoC encoded in Base64.
                 }
@@ -1004,8 +1006,8 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
                 validUntil: Math.floor(Date.now() / 1000) + 60,
                 messages: [
                     {
-                        address: vestingWalletAddress.toString(true, true, true),
-                        amount: toNano('0.1'),
+                        address: vestingWalletAddress.toString(false),
+                        amount: toNano('0.1').toString(),
                         payload: payloadBase64,  // raw one-cell BoC encoded in Base64
                     }
                 ]
