@@ -24,6 +24,10 @@ input {
     padding: 10px;
 }
 
+input::-webkit-date-and-time-value {
+    text-align: left;
+}
+
 .btn {
     border: none;
     background-color: #0088cc;
