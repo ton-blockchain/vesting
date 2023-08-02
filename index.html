@@ -820,6 +820,18 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
             throw 'Enter amount';
         }
 
+        if ($('#create_totalDurationInput').value === '') {
+            throw 'Enter total duration';
+        }
+
+        if ($('#create_cliffDurationInput').value === '') {
+            throw 'Enter cliff duration, if no cliff enter 0';
+        }
+
+        if ($('#create_unlockPeriodInput').value === '') {
+            throw 'Enter unlock period';
+        }
+
         let amountNano;
         try {
             const amountString = $('#create_totalAmountInput').value;
@@ -829,15 +841,15 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         }
 
         const totalDurationDays = $('#create_totalDurationInput').value;
-        const totalDurationSeconds = Math.floor(totalDurationDays * 24 * 60 * 60);
+        const totalDurationSeconds = Math.round(totalDurationDays * 24 * 60 * 60);
         const vestingEndTime = startTime + totalDurationSeconds;
 
         const cliffDurationDays = $('#create_cliffDurationInput').value;
-        const cliffDurationSeconds = Math.floor(cliffDurationDays * 24 * 60 * 60);
+        const cliffDurationSeconds = Math.round(cliffDurationDays * 24 * 60 * 60);
         const cliffEndTime = startTime + cliffDurationSeconds;
 
         const unlockPeriodDays = $('#create_unlockPeriodInput').value;
-        const unlockPeriodSeconds = Math.floor(unlockPeriodDays * 24 * 60 * 60);
+        const unlockPeriodSeconds = Math.round(unlockPeriodDays * 24 * 60 * 60);
 
         $('#create_createButton').innerText = 'Create';
 
@@ -883,11 +895,16 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
             throw 'Unlock Period must be less than or equal to Total Duration';
         }
 
-        if (totalDurationSeconds % unlockPeriodSeconds !== 0) {
+        const isDivisible = (x, y) => {
+            if (x === 0) return true;
+            return Math.floor(x / y) * y === x;
+        }
+
+        if (!isDivisible(totalDurationSeconds, unlockPeriodSeconds)) {
             throw 'Total Duration must be evenly divisible by Unlock Period';
         }
 
-        if (cliffDurationSeconds % unlockPeriodSeconds !== 0) {
+        if (!isDivisible(cliffDurationSeconds, unlockPeriodSeconds)) {
             throw 'Cliff Duration must be evenly divisible by Unlock Period';
         }
 
