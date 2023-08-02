@@ -16,6 +16,9 @@ a, a:active, a:focus, a:hover {
 
 input {
     font-family: Helvetica, Arial, SansSerif;
+    text-align: left;
+    font-size: 14px;
+    color: black;
     border: 1px solid #C0D1D9;
     border-radius: 8px;
     padding: 10px;
