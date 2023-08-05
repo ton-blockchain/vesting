@@ -106,7 +106,7 @@
         <div class="create_input">
             <input id="create_startTimeInput" type="datetime-local">
         </div>
-        <div class="create_label">Vesting total amount (TON):</div>
+        <div class="create_label">Total vesting amount (TON):</div>
         <div class="create_input">
             <input id="create_totalAmountInput" type="number">
         </div>
@@ -275,7 +275,8 @@
 
     // in user's timezone
     const formatDateTime = (timestamp) => {
-        return new Date(timestamp * 1000).toLocaleString();
+        const date = new Date(timestamp * 1000);
+        return date.toUTCString();
     }
 
     const formatPeriod = (seconds) => {
@@ -433,7 +434,7 @@ ${address === senderAddressString ? senderBadge : removeButton(i)}
 
                     vestingData.index = 0;
                     vestingData.address = address;
-                    vestingData.balance = addressInfo.balance;
+                    vestingData.balance = new BN(addressInfo.balance);
                     vestingData.lockedAmount = lockedAmount;
                     vestingData.ownerAddress = vestingData.ownerAddress.toString(true, true, true, IS_TESTNET);
                     vestingData.vestingSenderAddress = vestingData.vestingSenderAddress.toString(true, true, true, IS_TESTNET);
@@ -555,7 +556,7 @@ ${address === senderAddressString ? senderBadge : removeButton(i)}
     // VESTING SCREEN
 
     const renderVestingWallet = (vestingWalletInfo) => {
-        const lockedAmount = vestingWalletInfo.lockedAmount;
+        const lockedAmount = BN.min(vestingWalletInfo.lockedAmount, vestingWalletInfo.balance);
 
         const index = vestingWalletInfo.index;
         const whitelist = [vestingWalletInfo.vestingSenderAddress].concat(vestingWalletInfo.whitelist);
@@ -578,59 +579,73 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
     </div>
 
     <div class="vesting_key">
-        Current Balance:
+        Current Balance: <div class="vesting_hint">i<div class="vesting_hint_body">The current balance of the vesting address.</div></div>
     </div>
     <div class="vesting_value">
         ${formatAmount(vestingWalletInfo.balance)}
     </div>
 
     <div class="vesting_key">
-        Available:
+        Liquid: <div class="vesting_hint">i<div class="vesting_hint_body">The owner may transfer that amount from the vesting address.</div></div>
     </div>
     <div class="vesting_value">
-         ${formatAmount(vestingWalletInfo.vestingTotalAmount.sub(lockedAmount))}
+         ${formatAmount(vestingWalletInfo.balance.sub(lockedAmount))}
     </div>
 
     <div class="vesting_key">
-        Locked:
+        Unvested: <div class="vesting_hint">i<div class="vesting_hint_body">This amount is subject to restriction on transfer from the vesting address. The owner may transfer that amount only to whitelisted addresses.</div></div>
     </div>
-        <div class="vesting_value">
+    <div class="vesting_value strong">
          ${formatAmount(lockedAmount)}
     </div>
 
     <div class="vesting_key">
-        Total Vesting Amount:
+        Total Vesting Amount: <div class="vesting_hint">i<div class="vesting_hint_body">Total amount to be vested during the vesting period according to the initial contract parameters. The actual balance may be more or less than this amount.</div></div>
     </div>
         <div class="vesting_value">
          ${formatAmount(vestingWalletInfo.vestingTotalAmount)}
     </div>
 
     <div class="vesting_key">
-        Start Date:
+        Vesting Start Date: <div class="vesting_hint">i<div class="vesting_hint_body">The date-time when the vesting starts. Before that time coins will not be vested.</div></div>
     </div>
    <div class="vesting_value">
          ${formatDateTime(vestingWalletInfo.vestingStartTime)}
     </div>
 
     <div class="vesting_key">
-        Total Locked Duration:
+        Vesting Duration: <div class="vesting_hint">i<div class="vesting_hint_body">The total duration of the vesting. On that date all coins will be vested.</div></div>
     </div>
    <div class="vesting_value">
         ${formatPeriod(vestingWalletInfo.vestingTotalDuration)}
     </div>
 
     <div class="vesting_key">
-        Cliff Duration:
+        Cliff Duration: <div class="vesting_hint">i<div class="vesting_hint_body">During this period vesting will be accumulated but coins won't be released. At expiration of the cliff all accumulated coins will be vested all at once.</div></div>
     </div>
    <div class="vesting_value">
         ${vestingWalletInfo.cliffDuration === 0 ? 'No cliff' : formatPeriod(vestingWalletInfo.cliffDuration)}
     </div>
 
     <div class="vesting_key">
-        Unlock Period:
+        Unlock Period: <div class="vesting_hint">i<div class="vesting_hint_body">Granularity of the vesting calculation.</div></div>
+    </div>
+   <div class="vesting_value strong">
+        Every ${formatPeriod(vestingWalletInfo.unlockPeriod)} ${vestingWalletInfo.cliffDuration > 0 ? 'after cliff period' : ''}
+    </div>
+
+    <div class="vesting_key">
+        Vested Amount: <div class="vesting_hint">i<div class="vesting_hint_body">The amount that should be vested by now from the initially set Total Vesting Amount.</div></div>
     </div>
    <div class="vesting_value">
-        Every ${formatPeriod(vestingWalletInfo.unlockPeriod)} ${vestingWalletInfo.cliffDuration > 0 ? 'after cliff period' : ''}
+       ${formatAmount(vestingWalletInfo.vestingTotalAmount.sub(vestingWalletInfo.lockedAmount))}
+    </div>
+
+    <div class="vesting_key">
+        Unvested Amount: <div class="vesting_hint">i<div class="vesting_hint_body">The amount that should stay restricted by now from the initially set Total Vesting Amount.</div></div>
+    </div>
+   <div class="vesting_value strong">
+        ${formatAmount(vestingWalletInfo.lockedAmount)}
     </div>
 
     <div class="vesting_info">
