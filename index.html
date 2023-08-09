@@ -825,6 +825,9 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         });
 
         div.querySelector('#vesting_sendBtn' + index)?.addEventListener('click', () => {
+            $('#sendPopup_toAddressInput').value = '';
+            $('#sendPopup_amountInput').value = '';
+            $('#sendPopup_commentInput').value = '';
             showPopup('sendPopup');
         });
 
@@ -878,12 +881,14 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         const payloadBase64 = TonWeb.utils.bytesToBase64(await payload.toBoc(false));
         console.log('payload', payloadBase64);
 
+        const amountString = vestingWalletAddress.toString(false).startsWith('-1') ? '0.5' : '0.05';
+
         const transaction = {
             validUntil: Math.floor(Date.now() / 1000) + 60, // 1 minute
             messages: [
                 {
                     address: vestingWalletAddress.toString(true, true, true, IS_TESTNET),
-                    amount: toNano('0.05').toString(),
+                    amount: toNano(amountString).toString(),
                     payload: payloadBase64,  // raw one-cell BoC encoded in Base64
                 }
             ]
@@ -1137,6 +1142,11 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
 
         $('#create_inMasterchainCheckbox').checked = false;
         $('#create_startTimeInput').value = nowToInputValue();
+
+        $('#create_totalAmountInput').value = '';
+        $('#create_totalDurationInput').value = '';
+        $('#create_cliffDurationInput').value = '';
+        $('#create_unlockPeriodInput').value = '';
 
         renderCreateWhitelist();
         updateCreate();
