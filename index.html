@@ -123,7 +123,7 @@
             <input id="create_unlockPeriodInput" type="number">
         </div>
 
-        <label id="encryptCommentCheckboxContainer" class="checkbox-container"> In masterchain (for direct validation)
+        <label class="checkbox-container"> In masterchain (for direct validation)
             <input type="checkbox" id="create_inMasterchainCheckbox">
             <span class="checkmark"></span>
         </label>
@@ -168,13 +168,30 @@
 <script>
     // UI COMMON
 
+    /**
+     * @param selector  {string}
+     * @return {HTMLElement | null}
+     */
     const $ = (selector) => document.querySelector(selector);
+
+    /**
+     * @param selector  {string}
+     * @return {NodeListOf<HTMLElement>}
+     */
     const $$ = (selector) => document.querySelectorAll(selector);
 
+    /**
+     * @param element {HTMLElement}
+     * @param isVisible {boolean}
+     */
     const toggle = (element, isVisible) => {
         element.style.display = isVisible ? 'flex' : 'none';
     }
 
+    /**
+     * @param input {HTMLElement}
+     * @param handler   {() => void}
+     */
     function onInput(input, handler) {
         input.addEventListener('change', handler);
         input.addEventListener('input', handler);
@@ -182,16 +199,40 @@
         input.addEventListener('paste', handler);
     }
 
+    /**
+     * @param s {string}
+     */
+    const checkHTML = (s) => {
+        if (s.indexOf('<') > -1 || s.indexOf('>') > -1) throw new Error('html injection');
+    }
+
+    /**
+     * @param s {string}
+     * @return {string}
+     */
     const bold = (s) => {
+        checkHTML(s);
         return '<b>' + s + '</b>';
     }
 
+    /**
+     * @param address   {string}
+     * @return {string}
+     */
     const scanLink = (address) => {
+        checkHTML(address);
+        if (!TonWeb.utils.Address.isValid(address)) throw new Error('invalid address');
         return `https://${IS_TESTNET ? 'testnet.' : ''}tonscan.org/address/${address}`;
     }
 
-    let currentScreen = '';
+    /**
+     * @type {'mainScreen' | 'addressScreen' | 'createScreen' | 'loadingScreen'}
+     */
+    let currentScreen = 'mainScreen';
 
+    /**
+     * @param name {'mainScreen' | 'addressScreen' | 'createScreen' | 'loadingScreen'}
+     */
     const showScreen = (name) => {
         const screens = ['mainScreen', 'addressScreen', 'createScreen', 'loadingScreen']
         currentScreen = name;
@@ -208,6 +249,9 @@
 
     showScreen('mainScreen');
 
+    /**
+     * @param name  {'addWhitelistPopup' | 'sendPopup'}
+     */
     const showPopup = (name) => {
         const popups = ['addWhitelistPopup', 'sendPopup'];
         toggle($('#modal'), true);
@@ -225,9 +269,12 @@
 
     // PAGE
 
+    /** @type {string} */
     const browserLang = navigator.language || navigator.userLanguage;
+    /** @type {'ru' | 'en'} */
     const lang = (browserLang === 'ru-RU') || (browserLang === 'ru') || (browserLang === 'be-BY') || (browserLang === 'be') || (browserLang === 'kk-KZ') || (browserLang === 'kk') ? 'ru' : 'en';
 
+    /** @type {boolean} */
     const IS_TESTNET = window.location.href.indexOf('testnet=true') > -1;
 
     if (IS_TESTNET) {
@@ -237,6 +284,7 @@
 
     // TONCONNECT
 
+    /** @type {TonConnectUI} */
     const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
         manifestUrl: 'https://vesting.ton.org/tonconnect-manifest.json',
         buttonRootId: 'tonConnectButton'
@@ -261,24 +309,38 @@
     const BN = TonWeb.utils.BN;
     const fromNano = TonWeb.utils.fromNano;
     const toNano = TonWeb.utils.toNano;
+    /** @type {string} */
     const TONCENTER_API_KEY = IS_TESTNET ? 'd843619b379084d133f061606beecbf72ae2bf60e0622e808f2a3f631673599b' : 'd843619b379084d133f061606beecbf72ae2bf60e0622e808f2a3f631673599b';
+    /** @type {string} */
     const TONCENTER_URL = IS_TESTNET ? 'https://testnet.toncenter.com/api/v2/jsonRPC' : 'https://toncenter.com/api/v2/jsonRPC';
+    /** @type {TonWeb} */
     const tonweb = new TonWeb(new TonWeb.HttpProvider(TONCENTER_URL, {apiKey: TONCENTER_API_KEY}));
 
     // VESTING COMMON
 
+    /**
+     * @return {string}
+     */
     const nowToInputValue = () => {
         const now = new Date();
         now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
         return now.toISOString().slice(0, 16);
     }
 
-    // in user's timezone
+    /**
+     * in UTC timezone
+     * @param timestamp {number} unixtime
+     * @return {string}
+     */
     const formatDateTime = (timestamp) => {
         const date = new Date(timestamp * 1000);
         return date.toUTCString();
     }
 
+    /**
+     * @param seconds   {number}
+     * @return {string}
+     */
     const formatPeriod = (seconds) => {
         const d = Math.floor(seconds / (3600 * 24));
         const h = Math.floor(seconds % (3600 * 24) / 3600);
@@ -295,21 +357,42 @@
         return arr.filter(s => s !== '').join(' ');
     }
 
+    /**
+     * @param nano  {BN}
+     * @return {string}
+     */
     const formatAmount = (nano) => {
         return fromNano(nano) + ' TON';
     }
 
+    /**
+     *
+     * @param info  {{vestingStartTime: number, vestingTotalDuration: number, unlockPeriod: number, cliffDuration: number, vestingTotalAmount: BN, vestingSenderAddress: string, ownerAddress: string }}
+     * @return {string}
+     */
     const formatVestingInfo = (info) => {
+        /** @type {number} */
         const cliffEndTime = info.vestingStartTime + info.cliffDuration;
+        /** @type {number} */
         const vestingEndTime = info.vestingStartTime + info.vestingTotalDuration;
 
-        const cliffAmount = info.vestingTotalAmount.mul(new BN(info.cliffDuration / info.unlockPeriod)).div(new BN(info.vestingTotalDuration / info.unlockPeriod));
+        /** @type {BN} */
+        const cliffPeriodsCount = new BN(info.cliffDuration).div(new BN(info.unlockPeriod));
+        /** @type {BN} */
+        const periodsCount = new BN(info.vestingTotalDuration).div(new BN(info.unlockPeriod));
 
+        /** @type {BN} */
+        const cliffAmount = info.vestingTotalAmount.mul(cliffPeriodsCount).div(periodsCount);
+
+        /** @type {BN} */
         const unlockAmount = info.unlockPeriod === info.vestingTotalDuration ? new BN(0) :
-            info.vestingTotalAmount.div(new BN(info.vestingTotalDuration / info.unlockPeriod));
+            info.vestingTotalAmount.div(periodsCount);
 
+        /** @type {string} */
         const startsString = `Vesting starts at ${bold(formatDateTime(info.vestingStartTime))}.`;
+        /** @type {string} */
         const cliffString = info.cliffDuration ? ` Cliff period ends in ${bold(formatPeriod(info.cliffDuration))} at ${bold(formatDateTime(cliffEndTime))}, at this moment ${bold(formatAmount(cliffAmount))} will be unlocked.` : ` No cliff period.`;
+        /** @type {string} */
         const unlockString = info.unlockPeriod < info.vestingTotalDuration ? ` After that ${bold(formatAmount(unlockAmount))} will be unlock every ${bold(formatPeriod(info.unlockPeriod))}.` : ``;
 
         return `${startsString} ${cliffString} ${unlockString}<br>
@@ -317,16 +400,36 @@
 `
     }
 
+    /**
+     * @param address   {string}
+     * @return {string}
+     */
     const formatAddress = (address) => {
-        return `${address.substring(0, address.length / 2)}<br>${address.substring(address.length / 2)}`
+        checkHTML(address);
+        if (!TonWeb.utils.Address.isValid(address)) throw new Error('invalid address');
+        return `${address.substring(0, address.length / 2)}<wbr>${address.substring(address.length / 2)}`
     }
 
+    /**
+     * @param container {HTMLElement}
+     * @param list  {string[]}
+     * @param senderAddressString   {string}
+     * @param isCreateScreen    {boolean}
+     */
     const renderWhitelist = (container, list, senderAddressString, isCreateScreen) => {
+        /** @type {string} */
         const senderBadge = ` <div class="badge badge-blue">Sender</div>`;
+
+        /**
+         * @param i {number}
+         * @return {string}
+         */
         const removeButton = (i) => isCreateScreen ? `<button class="create_whitelist-btn" onclick="removeWhitelist(${i})">-</button>` : ``;
 
+        /** @type {string} */
         let s = '';
         for (let i = 0; i < list.length; i++) {
+            /** @type {string} */
             const address = list[i];
             s += `<div class="create_whitelist-row">
 <div class="create_whitelist-num">${i + 1}.</div>
@@ -341,18 +444,23 @@ ${address === senderAddressString ? senderBadge : removeButton(i)}
 
     // STATE
 
+    /** @type {string | null} */
     let currentAddress = null; // string user-friendly bounceable
 
-    let myAddress = ''; // user-friendly bounceable
-    let myPublicKey = ''; // hex
-    let userAddress = '';
-    let userPublicKey = ''; // hex
+    /** @type {string | null} */
+    let myAddress = null; // user-friendly bounceable
+    /** @type {string | null} */
+    let userAddress = null;
+    /** @type {string | null} */
+    let userPublicKey = null; // hex
 
-    let vestingWallet; // VestingWalletV1
+    /** @type {VestingWalletV1 | null} */
+    let vestingWallet = null;
 
     // NAVIGATE
 
-    let reloadTimeoutId;
+    /** @type {number} */
+    let reloadTimeoutId = 0;
 
     const clear = () => {
         currentAddress = null;
@@ -370,6 +478,9 @@ ${address === senderAddressString ? senderBadge : removeButton(i)}
         goHome();
     });
 
+    /**
+     * @param address   {string}
+     */
     const setAddress = (address) => {
         currentAddress = address;
         vestingWallet = null;
@@ -381,6 +492,8 @@ ${address === senderAddressString ? senderBadge : removeButton(i)}
         toggle($('#wallet_createButton'), false);
         toggle($('#vesting_container'), false);
         toggle($('#address_loading'), true);
+        $('#header_input').value = '';
+        $('.main_input').value = '';
 
         clearTimeout(reloadTimeoutId);
 
@@ -424,12 +537,12 @@ ${address === senderAddressString ? senderBadge : removeButton(i)}
 
                 if (addressInfo.code === vestingWalletCode) {
 
-                        vestingWallet = new VestingWalletClass(tonweb.provider, {
+                    const newVestingWallet = new VestingWalletClass(tonweb.provider, {
                         address: new TonWeb.utils.Address(address)
                     });
 
-                    const lockedAmount = await vestingWallet.getLockedAmount(Math.floor(Date.now() / 1000));
-                    const vestingData = await vestingWallet.getVestingData();
+                    const lockedAmount = await newVestingWallet.getLockedAmount(Math.floor(Date.now() / 1000));
+                    const vestingData = await newVestingWallet.getVestingData();
                     console.log(vestingData);
 
                     vestingData.index = 0;
@@ -438,8 +551,9 @@ ${address === senderAddressString ? senderBadge : removeButton(i)}
                     vestingData.lockedAmount = lockedAmount;
                     vestingData.ownerAddress = vestingData.ownerAddress.toString(true, true, true, IS_TESTNET);
                     vestingData.vestingSenderAddress = vestingData.vestingSenderAddress.toString(true, true, true, IS_TESTNET);
-                    vestingData.whitelist = (await vestingWallet.getWhitelist()).map(address => address.toString(true, true, true, IS_TESTNET));
+                    vestingData.whitelist = (await newVestingWallet.getWhitelist()).map(address => address.toString(true, true, true, IS_TESTNET));
                     if (address !== currentAddress) return;
+                    vestingWallet = newVestingWallet;
 
                     $('#address_info').innerText = '';
                     toggle($('#address_loading'), false);
@@ -458,12 +572,12 @@ ${address === senderAddressString ? senderBadge : removeButton(i)}
             }
         }
 
-        $('#header_input').value = '';
-        $('.main_input').value = '';
-
         loadAddress();
     }
 
+    /**
+     * @param e {KeyboardEvent}
+     */
     const onAddressInput = e => {
         if (e.key === 'Enter') {
             let addressString = e.target.value.trim();
@@ -502,46 +616,60 @@ ${address === senderAddressString ? senderBadge : removeButton(i)}
 
     // TONCONNECT CONNECT/DISCONNECT
 
-    const onWalletConnected = async account => {
+    /**
+     * @param account   {{address: string, publicKey:  string}}
+     */
+    const onWalletConnected = account => {
         myAddress = new TonWeb.utils.Address(account.address).toString(true, true, true, IS_TESTNET);
-        myPublicKey = account.publicKey;
 
         console.log('my address ', myAddress);
-        console.log('my key ', myPublicKey);
 
-        if (currentScreen === 'addressScreen') {
-            setAddress(currentAddress);
+        if (currentScreen !== 'mainScreen') {
+            setAddress(currentAddress); // refresh
         }
         hidePopup();
     };
 
     const onWalletDisconnected = () => {
-        if (currentScreen === 'createScreen' || currentScreen === 'addressScreen') {
-            setAddress(currentAddress);
+        if (currentScreen !== 'mainScreen') {
+            setAddress(currentAddress); // refresh
         }
         hidePopup();
         myAddress = null;
-        myPublicKey = null;
     }
 
     // WALLET SCREEN
 
     $('#wallet_createButton').addEventListener('click', async (event) => {
-        if (!tonConnectUI.connected) {
+        if (!tonConnectUI.connected || !myAddress) {
             alert('Connect wallet first');
             return;
         }
+        const newCreateState = {
+            myAddress,
+            currentAddress
+        };
         showScreen('loadingScreen');
 
-        let publicKey; // BN
+        /** @type {BN} */
+        let publicKey;
 
         try {
             publicKey = await tonweb.provider.call2(currentAddress, 'get_public_key');
         } catch (e) {
+            console.error(e);
+        }
+
+        if (!publicKey) {
             alert('Cant get publicKey of target wallet');
             showScreen('addressScreen');
             return;
         }
+
+        if (currentScreen !== 'loadingScreen' || myAddress !== newCreateState.myAddress || currentAddress !== newCreateState.currentAddress) {
+            return;
+        }
+
         userAddress = currentAddress;
         userPublicKey = publicKey.toString(16);
         if (userPublicKey.length % 2 !== 0) userPublicKey = '0' + userPublicKey;
@@ -555,13 +683,28 @@ ${address === senderAddressString ? senderBadge : removeButton(i)}
 
     // VESTING SCREEN
 
+    /**
+     * @param vestingWalletInfo {*}
+     * @return {HTMLDivElement}
+     */
     const renderVestingWallet = (vestingWalletInfo) => {
+        /** @type {BN} */
         const lockedAmount = BN.min(vestingWalletInfo.lockedAmount, vestingWalletInfo.balance);
 
+        /** @type {string} */
+        const unlockString = vestingWalletInfo.unlockPeriod === vestingWalletInfo.vestingTotalDuration ? '-' :
+            `Every ${formatPeriod(vestingWalletInfo.unlockPeriod)} ${vestingWalletInfo.cliffDuration > 0 ? 'after cliff period' : ''}`;
+
+        /** @type {number} */
         const index = vestingWalletInfo.index;
+
+        /** @type {string[]} */
         const whitelist = [vestingWalletInfo.vestingSenderAddress].concat(vestingWalletInfo.whitelist);
 
+        /** @type {boolean} */
         const isSender = myAddress === vestingWalletInfo.vestingSenderAddress;
+
+        /** @type {boolean} */
         const isOwner = myAddress === vestingWalletInfo.ownerAddress;
 
         const div = document.createElement('div');
@@ -631,7 +774,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         Unlock Period: <div class="vesting_hint">i<div class="vesting_hint_body">Granularity of the vesting calculation.</div></div>
     </div>
    <div class="vesting_value strong">
-        Every ${formatPeriod(vestingWalletInfo.unlockPeriod)} ${vestingWalletInfo.cliffDuration > 0 ? 'after cliff period' : ''}
+        ${unlockString}
     </div>
 
     <div class="vesting_key">
@@ -659,7 +802,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
     ${isSender ? `<button id="vesting_addWhitelistBtn${index}" class="btn">Add whitelist</button>` : ``}
 </div>`
 
-        renderWhitelist(div.querySelector('.create_whitelist-container'), whitelist, vestingWalletInfo.vestingSenderAddress.toString(true, true, true, IS_TESTNET), false);
+        renderWhitelist(div.querySelector('.create_whitelist-container'), whitelist, vestingWalletInfo.vestingSenderAddress, false);
 
         // div.querySelector('#vesting_all-parameters-btn' + index).addEventListener('click', () => {
         //     const needShow = $('#vesting_all-parameters-container' + index).style.display !== 'flex';
@@ -681,33 +824,47 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
     // SEND
 
     $('#sendPopup_sendButton').addEventListener('click', () => {
+        /** @type {string} */
         const toAddress = $('#sendPopup_toAddressInput').value;
-        if (!TonWeb.utils.Address.isValid(toAddress)) {
+        if (!toAddress || !TonWeb.utils.Address.isValid(toAddress)) {
             alert('Not valid address');
             return;
         }
 
+        /** @type {BN} */
         let amount;
         try {
-            amount = toNano($('#sendPopup_amountInput').value);
+            const amountString = $('#sendPopup_amountInput').value;
+            if (!amountString) throw new Error();
+            amount = toNano(amountString);
+            if (!amount.gt(new BN(0))) throw new Error();
         } catch (e) {
             alert('Not valid amount');
             return;
         }
 
+        /** @type {string} */
         const comment = $('#sendPopup_commentInput').value
 
         sendFromVesting(toAddress, amount, comment);
-
     });
 
+    /**
+     * @param toAddress {string}
+     * @param amountBN  {BN}
+     * @param textPayload? {string}
+     * @return {Promise<void>}
+     */
     const sendFromVesting = async (toAddress, amountBN, textPayload) => {
+        /** @type {Address} */
         const vestingWalletAddress = await vestingWallet.getAddress();
+        /** @type {Cell} */
         const payload = vestingWallet.createInternalTransfer({
             address: toAddress,
             amount: amountBN,
             payload: textPayload
         });
+        /** @type {string} */
         const payloadBase64 = TonWeb.utils.bytesToBase64(await payload.toBoc(false));
         console.log('payload', payloadBase64);
 
@@ -715,7 +872,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
             validUntil: Math.floor(Date.now() / 1000) + 60, // 1 minute
             messages: [
                 {
-                    address: vestingWalletAddress.toString(false),
+                    address: vestingWalletAddress.toString(true, true, true, IS_TESTNET),
                     amount: toNano('0.05').toString(),
                     payload: payloadBase64,  // raw one-cell BoC encoded in Base64
                 }
@@ -732,12 +889,14 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
 
     // ADD WHITELIST POPUP
 
+    /** @type {string | undefined} */
     let addressForCheck = undefined;
+    /** @type {string | undefined} */
     let oldAddressForCheck = undefined;
 
     const onWhitelistAddressInput = async () => {
         const value = $('#whitelist_addressInput').value;
-        if (TonWeb.utils.Address.isValid(value)) {
+        if (value && TonWeb.utils.Address.isValid(value)) {
             addressForCheck = value;
             if (oldAddressForCheck !== addressForCheck) {
                 oldAddressForCheck = addressForCheck;
@@ -774,6 +933,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
     });
 
     $('#create_createButton').addEventListener('click', async (event) => {
+        /** @type {0 | -1} */
         const wc = $('#create_inMasterchainCheckbox').checked ? -1 : 0;
         console.log({wc});
 
@@ -789,25 +949,29 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
             vestingSenderAddress: new TonWeb.utils.Address(myAddress),
             ownerAddress: new TonWeb.utils.Address(userAddress)
         });
+        /** @type {Address} */
         const vestingWalletAddress = await vestingWallet.getAddress();
+        /** @type {string} */
         const addressString = vestingWalletAddress.toString(true, true, true, IS_TESTNET);
         console.log('Vesting = ', addressString);
+        /** @type {Cell} */
         const stateInitCell = (await vestingWallet.createStateInit()).stateInit;
+        /** @type {string} */
         const stateInitBase64 = TonWeb.utils.bytesToBase64(await stateInitCell.toBoc(false));
         console.log({stateInitBase64})
+        /** @type {Address[]} */
         const addresses = createState.whitelistAddresses.map(addressString => new TonWeb.utils.Address(addressString));
+        /** @type {Cell} */
         const payload = addresses.length ? vestingWallet.createAddWhitelistBody({addresses}) : undefined;
-
+        /** @type {string} */
         const payloadBase64 = payload ? TonWeb.utils.bytesToBase64(await payload.toBoc(false)) : undefined;
         console.log({payloadBase64});
-
-
 
         const transaction = {
             validUntil: Math.floor(Date.now() / 1000) + 60,
             messages: [
                 {
-                    address: vestingWalletAddress.toString(false),
+                    address: addressString,
                     amount: toNano('0.1').toString(),
                     payload: payloadBase64,  // raw one-cell BoC encoded in Base64
                     stateInit: stateInitBase64 // raw once-cell BoC encoded in Base64.
@@ -829,8 +993,13 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         }
     });
 
+    /**
+     * @return {{vestingTotalAmount: BN, unlockPeriod: number, cliffDuration: number, vestingTotalDuration: number, whitelist: string[], vestingStartTime: number}}
+     */
     const validateCreate = () => {
+        /** @type {string} */
         const startTimeString = $('#create_startTimeInput').value;
+        /** @type {number} */
         const startTime = Math.floor(new Date(startTimeString).getTime() / 1000);
 
         if ($('#create_totalAmountInput').value === '') {
@@ -849,6 +1018,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
             throw 'Enter unlock period';
         }
 
+        /** @type {BN} */
         let amountNano;
         try {
             const amountString = $('#create_totalAmountInput').value;
@@ -857,15 +1027,23 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
             throw 'Invalid amount';
         }
 
+        /** @type {string} */
         const totalDurationDays = $('#create_totalDurationInput').value;
+        /** @type {number} */
         const totalDurationSeconds = Math.round(totalDurationDays * 24 * 60 * 60);
+        /** @type {number} */
         const vestingEndTime = startTime + totalDurationSeconds;
 
+        /** @type {string} */
         const cliffDurationDays = $('#create_cliffDurationInput').value;
+        /** @type {number} */
         const cliffDurationSeconds = Math.round(cliffDurationDays * 24 * 60 * 60);
+        /** @type {number} */
         const cliffEndTime = startTime + cliffDurationSeconds;
 
+        /** @type {string} */
         const unlockPeriodDays = $('#create_unlockPeriodInput').value;
+        /** @type {number} */
         const unlockPeriodSeconds = Math.round(unlockPeriodDays * 24 * 60 * 60);
 
         $('#create_createButton').innerText = 'Create';
@@ -874,6 +1052,10 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
             throw 'Enter amount';
         }
 
+        /**
+         * @param x {any}
+         * @param error {string}
+         */
         const require = (x, error) => {
             if (isNaN(x) || x === undefined || x === null) {
                 throw error;
@@ -912,6 +1094,11 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
             throw 'Unlock Period must be less than or equal to Total Duration';
         }
 
+        /**
+         * @param x {number}
+         * @param y {number}
+         * @return {boolean}
+         */
         const isDivisible = (x, y) => {
             if (x === 0) return true;
             return Math.floor(x / y) * y === x;
@@ -974,6 +1161,9 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         renderWhitelist($('#create_whitelist-container'), [myAddress].concat(createState.whitelistAddresses), myAddress, true);
     }
 
+    /**
+     * @param index {number}
+     */
     const removeWhitelist = (index) => {
         createState.whitelistAddresses.splice(index - 1, 1);
         renderCreateWhitelist();
@@ -989,6 +1179,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
     $('#whitelist_addButton').addEventListener('click', async () => {
         hidePopup();
 
+        /** @type {string} */
         const newAddress = $('#whitelist_addressInput').value;
 
         if (!TonWeb.utils.Address.isValid(newAddress)) {
@@ -1012,8 +1203,11 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
 
         } else if (currentScreen === 'addressScreen') {
 
+            /** @type {Address} */
             const vestingWalletAddress = await vestingWallet.getAddress();
+            /** @type {Cell} */
             const payload = vestingWallet.createAddWhitelistBody({addresses: [new TonWeb.utils.Address(newAddress)]});
+            /** @type {string} */
             const payloadBase64 = TonWeb.utils.bytesToBase64(await payload.toBoc(false));
             console.log('payload', payloadBase64);
 
@@ -1021,7 +1215,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
                 validUntil: Math.floor(Date.now() / 1000) + 60,
                 messages: [
                     {
-                        address: vestingWalletAddress.toString(false),
+                        address: vestingWalletAddress.toString(true, true, true, IS_TESTNET),
                         amount: toNano('0.1').toString(),
                         payload: payloadBase64,  // raw one-cell BoC encoded in Base64
                     }
