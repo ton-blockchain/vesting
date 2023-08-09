@@ -84,7 +84,7 @@
 
 <div id="addressScreen" class="screen">
     <div class="address_header">Address</div>
-    <div id="address_userAddress"></div>
+    <div id="address_userAddress" class="address"></div>
 
     <div id="address_info"></div>
 
@@ -99,7 +99,7 @@
 
 <div id="createScreen" class="screen">
     <div class="create_header">Create new vesting wallet for user</div>
-    <div id="create_userAddress"></div>
+    <div id="create_userAddress" class="address"></div>
 
     <div id="create_panel">
         <div class="create_label">Vesting start time:</div>
@@ -434,7 +434,7 @@
             const address = list[i];
             s += `<div class="create_whitelist-row">
 <div class="create_whitelist-num">${i + 1}.</div>
-<a class="create_whitelist-address" href="${scanLink(address)}" target="_blank">
+<a class="create_whitelist-address address" href="${scanLink(address)}" target="_blank">
 ${formatAddress(address)}
 </a>
 ${address === senderAddressString ? senderBadge : removeButton(i)}
@@ -721,7 +721,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         Vesting for user:
     </div>
     <div class="vesting_value">
-        <a href="${scanLink(vestingWalletInfo.ownerAddress)}" target="_blank">${formatAddress(vestingWalletInfo.ownerAddress)}</a>
+        <a href="${scanLink(vestingWalletInfo.ownerAddress)}" target="_blank" class="address">${formatAddress(vestingWalletInfo.ownerAddress)}</a>
     </div>
 
     <div class="vesting_key">
@@ -1147,15 +1147,17 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         /** @type {string} */
         const value = $('#whitelist_addressInput').value;
 
-        if (value && TonWeb.utils.Address.isValid(value) && (addressForCheck !== value)) {
-            addressForCheck = value;
-            $('#whitelist_info').innerText = 'Loading..';
-            /** @type {{status: 'SUCCESS' | 'INVALID' | 'NO_RESPONSE', text: string}} */
-            const info = await checkSmartContract(tonweb, new TonWeb.utils.Address(value));
-            if (value === addressForCheck) {
-                // todo: disable Add button if INVALID or NO_RESPONSE
-                // todo: disable Add button if single-nominator.owner !== vestingWalletAddress
-                $('#whitelist_info').innerText = info.text;
+        if (value && TonWeb.utils.Address.isValid(value)) {
+            if (addressForCheck !== value) {
+                addressForCheck = value;
+                $('#whitelist_info').innerText = 'Loading..';
+                /** @type {{status: 'SUCCESS' | 'INVALID' | 'NO_RESPONSE', text: string}} */
+                const info = await checkSmartContract(tonweb, new TonWeb.utils.Address(value));
+                if (value === addressForCheck) {
+                    // todo: disable Add button if INVALID or NO_RESPONSE
+                    // todo: disable Add button if single-nominator.owner !== vestingWalletAddress
+                    $('#whitelist_info').innerText = info.text;
+                }
             }
         } else {
             $('#whitelist_info').innerText = 'Invalid address';

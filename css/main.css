@@ -257,6 +257,16 @@ input::-webkit-date-and-time-value {
     text-align: center;
 }
 
+.address {
+    min-width: 24ch;
+    max-width: 24ch;
+    hyphens: manual;
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    cursor: text;
+}
+
 #address_userAddress {
     font-family: monospace;
     font-size: 24px;
