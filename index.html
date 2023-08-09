@@ -226,6 +226,24 @@
     }
 
     /**
+     * @param name  {'addWhitelistPopup' | 'sendPopup'}
+     */
+    const showPopup = (name) => {
+        const popups = ['addWhitelistPopup', 'sendPopup'];
+        toggle($('#modal'), true);
+
+        for (const popup of popups) {
+            toggle($('#' + popup), popup === name);
+        }
+    }
+
+    const hidePopup = () => {
+        toggle($('#modal'), false);
+    }
+
+    $('#modal').addEventListener('click', () => hidePopup());
+
+    /**
      * @type {'mainScreen' | 'addressScreen' | 'createScreen' | 'loadingScreen'}
      */
     let currentScreen = 'mainScreen';
@@ -245,27 +263,10 @@
                 $('.main_input').focus();
             }, 10);
         }
+        hidePopup();
     }
 
     showScreen('mainScreen');
-
-    /**
-     * @param name  {'addWhitelistPopup' | 'sendPopup'}
-     */
-    const showPopup = (name) => {
-        const popups = ['addWhitelistPopup', 'sendPopup'];
-        toggle($('#modal'), true);
-
-        for (const popup of popups) {
-            toggle($('#' + popup), popup === name);
-        }
-    }
-
-    const hidePopup = () => {
-        toggle($('#modal'), false);
-    }
-
-    $('#modal').addEventListener('click', () => hidePopup());
 
     // PAGE
 
@@ -553,6 +554,7 @@ ${address === senderAddressString ? senderBadge : removeButton(i)}
                     vestingData.vestingSenderAddress = vestingData.vestingSenderAddress.toString(true, true, true, IS_TESTNET);
                     vestingData.whitelist = (await newVestingWallet.getWhitelist()).map(address => address.toString(true, true, true, IS_TESTNET));
                     if (address !== currentAddress) return;
+                    hidePopup(); // close probably opened popups related to old vestingWallet
                     vestingWallet = newVestingWallet;
 
                     $('#address_info').innerText = '';
@@ -887,40 +889,6 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         }
     }
 
-    // ADD WHITELIST POPUP
-
-    /** @type {string | undefined} */
-    let addressForCheck = undefined;
-    /** @type {string | undefined} */
-    let oldAddressForCheck = undefined;
-
-    const onWhitelistAddressInput = async () => {
-        const value = $('#whitelist_addressInput').value;
-        if (value && TonWeb.utils.Address.isValid(value)) {
-            addressForCheck = value;
-            if (oldAddressForCheck !== addressForCheck) {
-                oldAddressForCheck = addressForCheck;
-                $('#whitelist_info').innerText = 'Loading..';
-                const info = await checkSmartContract(tonweb, new TonWeb.utils.Address(value));
-                if (value === addressForCheck) {
-                    $('#whitelist_info').innerText = info.text;
-                }
-            }
-        } else {
-            $('#whitelist_info').innerText = 'Invalid address';
-        }
-    }
-
-    onInput($('#whitelist_addressInput'), onWhitelistAddressInput);
-    onWhitelistAddressInput();
-
-    const showAddWhitelistPopup = () => {
-        $('#whitelist_addressInput').value = '';
-        $('#whitelist_info').innerText = '';
-        showPopup('addWhitelistPopup');
-    }
-
-
     // CREATE SCREEN
 
     const createState = {
@@ -1155,6 +1123,43 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         updateCreate();
     }
 
+    // ADD WHITELIST POPUP
+
+    /** @type {string | null} */
+    let addressForCheck = null;
+
+    /**
+     * @return {Promise<void>}
+     */
+    const onWhitelistAddressInput = async () => {
+        /** @type {string} */
+        const value = $('#whitelist_addressInput').value;
+
+        if (value && TonWeb.utils.Address.isValid(value) && (addressForCheck !== value)) {
+            addressForCheck = value;
+            $('#whitelist_info').innerText = 'Loading..';
+            /** @type {{status: 'SUCCESS' | 'INVALID' | 'NO_RESPONSE', text: string}} */
+            const info = await checkSmartContract(tonweb, new TonWeb.utils.Address(value));
+            if (value === addressForCheck) {
+                // todo: disable Add button if INVALID or NO_RESPONSE
+                // todo: disable Add button if single-nominator.owner !== vestingWalletAddress
+                $('#whitelist_info').innerText = info.text;
+            }
+        } else {
+            $('#whitelist_info').innerText = 'Invalid address';
+        }
+    }
+
+    onInput($('#whitelist_addressInput'), onWhitelistAddressInput);
+    onWhitelistAddressInput();
+
+    const showAddWhitelistPopup = () => {
+        addressForCheck = null;
+        $('#whitelist_addressInput').value = '';
+        $('#whitelist_info').innerText = '';
+        showPopup('addWhitelistPopup');
+    }
+
     // CREATE WHITELIST
 
     const renderCreateWhitelist = () => {
@@ -1176,29 +1181,38 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
     $('#addWhitelistPopup').addEventListener('click', e => e.stopImmediatePropagation());
     $('#sendPopup').addEventListener('click', e => e.stopImmediatePropagation());
 
+    /**
+     * @param a {string}
+     * @param b {string}
+     * @return {boolean}
+     */
+    const isEqualAddresses = (a, b) => {
+        return new TonWeb.utils.Address(a).toString(false) === new TonWeb.utils.Address(b).toString(false);
+    }
+
     $('#whitelist_addButton').addEventListener('click', async () => {
         hidePopup();
 
         /** @type {string} */
         const newAddress = $('#whitelist_addressInput').value;
 
-        if (!TonWeb.utils.Address.isValid(newAddress)) {
+        if (!newAddress || !TonWeb.utils.Address.isValid(newAddress)) {
             return;
         }
 
-        if (new TonWeb.utils.Address(myAddress).toString(false) === new TonWeb.utils.Address(newAddress).toString(false)) {
+        if (isEqualAddresses(myAddress, newAddress)) {
             return;
         }
 
         for (let address of createState.whitelistAddresses) {
-            if (new TonWeb.utils.Address(address).toString(false) === new TonWeb.utils.Address(newAddress).toString(false)) {
+            if (isEqualAddresses(address, newAddress)) {
                 return;
             }
         }
 
         if (currentScreen === 'createScreen') {
 
-            createState.whitelistAddresses.push(newAddress);
+            createState.whitelistAddresses.push(new TonWeb.utils.Address(newAddress).toString(true, true, true, IS_TESTNET));
             renderCreateWhitelist();
 
         } else if (currentScreen === 'addressScreen') {
