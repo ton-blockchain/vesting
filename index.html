@@ -368,7 +368,7 @@
 
     /**
      *
-     * @param info  {{vestingStartTime: number, vestingTotalDuration: number, unlockPeriod: number, cliffDuration: number, vestingTotalAmount: BN, vestingSenderAddress: string, ownerAddress: string }}
+     * @param info  {{vestingStartTime: number, vestingTotalDuration: number, unlockPeriod: number, cliffDuration: number, vestingTotalAmount: BN }}
      * @return {string}
      */
     const formatVestingInfo = (info) => {
@@ -891,9 +891,12 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
 
     // CREATE SCREEN
 
+    /**
+     * @type {{whitelistAddresses: string[], info: null | {vestingStartTime: number, vestingTotalDuration: number, unlockPeriod: number, cliffDuration: number, vestingTotalAmount: BN}}}
+     */
     const createState = {
         info: null,
-        whitelistAddresses: [], // string[]
+        whitelistAddresses: [],
     }
 
     $('#create_backBtn').addEventListener('click', event => {
@@ -904,6 +907,8 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         /** @type {0 | -1} */
         const wc = $('#create_inMasterchainCheckbox').checked ? -1 : 0;
         console.log({wc});
+
+        // todo: prevent deploy if elector or config in whitelist, but wc == 0
 
         const VestingWalletClass = TonWeb.LockupWallets.VestingWalletV1;
         const vestingWallet = new VestingWalletClass(tonweb.provider, {
@@ -940,7 +945,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
             messages: [
                 {
                     address: addressString,
-                    amount: toNano('0.1').toString(),
+                    amount: toNano('0.5').toString(),
                     payload: payloadBase64,  // raw one-cell BoC encoded in Base64
                     stateInit: stateInitBase64 // raw once-cell BoC encoded in Base64.
                 }
@@ -962,63 +967,63 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
     });
 
     /**
-     * @return {{vestingTotalAmount: BN, unlockPeriod: number, cliffDuration: number, vestingTotalDuration: number, whitelist: string[], vestingStartTime: number}}
+     * @return {{vestingStartTime: number, vestingTotalDuration: number, unlockPeriod: number, cliffDuration: number, vestingTotalAmount: BN}}
      */
     const validateCreate = () => {
+        if (!$('#create_startTimeInput').value) {
+            throw 'Enter start time';
+        }
+
+        if (!$('#create_totalAmountInput').value) {
+            throw 'Enter amount';
+        }
+
+        if (!$('#create_totalDurationInput').value) {
+            throw 'Enter total duration';
+        }
+
+        if (!$('#create_cliffDurationInput').value) {
+            throw 'Enter cliff duration, if no cliff enter 0';
+        }
+
+        if (!$('#create_unlockPeriodInput').value) {
+            throw 'Enter unlock period';
+        }
+
         /** @type {string} */
         const startTimeString = $('#create_startTimeInput').value;
         /** @type {number} */
         const startTime = Math.floor(new Date(startTimeString).getTime() / 1000);
-
-        if ($('#create_totalAmountInput').value === '') {
-            throw 'Enter amount';
-        }
-
-        if ($('#create_totalDurationInput').value === '') {
-            throw 'Enter total duration';
-        }
-
-        if ($('#create_cliffDurationInput').value === '') {
-            throw 'Enter cliff duration, if no cliff enter 0';
-        }
-
-        if ($('#create_unlockPeriodInput').value === '') {
-            throw 'Enter unlock period';
-        }
 
         /** @type {BN} */
         let amountNano;
         try {
             const amountString = $('#create_totalAmountInput').value;
             amountNano = toNano(amountString);
+            if (!amountNano) throw new Error();
+            if (!amountNano.gt(new BN(0))) throw Error();
         } catch (e) {
             throw 'Invalid amount';
         }
 
-        /** @type {string} */
-        const totalDurationDays = $('#create_totalDurationInput').value;
+        /** @type {number} */
+        const totalDurationDays = Number($('#create_totalDurationInput').value);
         /** @type {number} */
         const totalDurationSeconds = Math.round(totalDurationDays * 24 * 60 * 60);
         /** @type {number} */
         const vestingEndTime = startTime + totalDurationSeconds;
 
-        /** @type {string} */
-        const cliffDurationDays = $('#create_cliffDurationInput').value;
+        /** @type {number} */
+        const cliffDurationDays = Number($('#create_cliffDurationInput').value);
         /** @type {number} */
         const cliffDurationSeconds = Math.round(cliffDurationDays * 24 * 60 * 60);
         /** @type {number} */
         const cliffEndTime = startTime + cliffDurationSeconds;
 
-        /** @type {string} */
-        const unlockPeriodDays = $('#create_unlockPeriodInput').value;
+        /** @type {number} */
+        const unlockPeriodDays = Number($('#create_unlockPeriodInput').value);
         /** @type {number} */
         const unlockPeriodSeconds = Math.round(unlockPeriodDays * 24 * 60 * 60);
-
-        $('#create_createButton').innerText = 'Create';
-
-        if (!amountNano) {
-            throw 'Enter amount';
-        }
 
         /**
          * @param x {any}
@@ -1030,19 +1035,24 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
             }
         }
 
+        require(startTime, 'Enter Start Time')
         require(totalDurationDays, 'Enter Total Duration')
         require(cliffDurationDays, 'Enter Cliff Duration')
         require(unlockPeriodDays, 'Enter Unlock Period')
 
-        if (amountNano.lt(new TonWeb.utils.BN(1e9))) {
+        if (!amountNano.gte(new TonWeb.utils.BN(1e9))) {
             throw 'Minimum 1 TON';
+        }
+
+        if (startTime < 0) {
+            throw 'Start time must be greater than zero';
         }
 
         if (totalDurationDays <= 0) {
             throw 'Total Duration must be greater than zero';
         }
 
-        if (new BN(totalDurationSeconds).gt(new BN(2).pow(new BN(32)))) {
+        if (totalDurationSeconds > 2 ** 32 -1) {
             throw 'Total Duration must be less than 135 years';
         }
 
@@ -1085,8 +1095,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
             vestingTotalDuration: totalDurationSeconds, // seconds
             unlockPeriod: unlockPeriodSeconds, // seconds
             cliffDuration: cliffDurationSeconds, // seconds
-            vestingTotalAmount: amountNano,
-            whitelist: createState.whitelistAddresses
+            vestingTotalAmount: amountNano
         }
     }
 
@@ -1113,6 +1122,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
 
     const renderCreateScreen = () => {
         createState.whitelistAddresses = [];
+        createState.info = null;
 
         $('#create_userAddress').innerHTML = `<a href="${scanLink(userAddress)}" target="_blank">${formatAddress(userAddress)}</a>`;
 
@@ -1230,7 +1240,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
                 messages: [
                     {
                         address: vestingWalletAddress.toString(true, true, true, IS_TESTNET),
-                        amount: toNano('0.1').toString(),
+                        amount: toNano('0.5').toString(),
                         payload: payloadBase64,  // raw one-cell BoC encoded in Base64
                     }
                 ]
