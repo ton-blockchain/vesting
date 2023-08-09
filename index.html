@@ -499,7 +499,13 @@ ${address === senderAddressString ? senderBadge : removeButton(i)}
         clearTimeout(reloadTimeoutId);
 
         const loadAddress = async () => {
-            const walletInfo = await tonweb.provider.getWalletInfo(address);
+            let walletInfo;
+
+            try {
+                walletInfo = await tonweb.provider.getWalletInfo(address);
+            } catch (e) {
+                console.error(e);
+            }
 
             if (address !== currentAddress) return;
 
@@ -508,7 +514,7 @@ ${address === senderAddressString ? senderBadge : removeButton(i)}
             if (!walletInfo) {
 
                 toggle($('#address_loading'), false);
-                $('#address_info').innerText = 'Cant get this address. Try again..';
+                $('#address_info').innerText = `Can't get this address. Try again..`;
                 reloadTimeoutId = setTimeout(loadAddress, 5 * 1000); // reload after 5 seconds
 
             } else if (walletInfo.account_state === 'uninitialized') {
