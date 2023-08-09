@@ -1001,7 +1001,6 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
             const amountString = $('#create_totalAmountInput').value;
             amountNano = toNano(amountString);
             if (!amountNano) throw new Error();
-            if (!amountNano.gt(new BN(0))) throw Error();
         } catch (e) {
             throw 'Invalid amount';
         }
@@ -1036,9 +1035,11 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         }
 
         require(startTime, 'Enter Start Time')
-        require(totalDurationDays, 'Enter Total Duration')
-        require(cliffDurationDays, 'Enter Cliff Duration')
-        require(unlockPeriodDays, 'Enter Unlock Period')
+        require(totalDurationSeconds, 'Enter Total Duration')
+        require(cliffDurationSeconds, 'Enter Cliff Duration')
+        require(unlockPeriodSeconds, 'Enter Unlock Period')
+        require(cliffEndTime, '')
+        require(vestingEndTime, '')
 
         if (!amountNano.gte(new TonWeb.utils.BN(1e9))) {
             throw 'Minimum 1 TON';
@@ -1048,7 +1049,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
             throw 'Start time must be greater than zero';
         }
 
-        if (totalDurationDays <= 0) {
+        if (totalDurationSeconds <= 0) {
             throw 'Total Duration must be greater than zero';
         }
 
@@ -1056,7 +1057,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
             throw 'Total Duration must be less than 135 years';
         }
 
-        if (cliffDurationDays < 0) {
+        if (cliffDurationSeconds < 0) {
             throw 'Cliff Duration must be greater than or equal to zero`';
         }
 
@@ -1064,7 +1065,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
             throw 'Total Duration must be greater than Cliff Duration';
         }
 
-        if (unlockPeriodDays <= 0) {
+        if (unlockPeriodSeconds <= 0) {
             throw 'Unlock Period must be greater than zero';
         }
 
