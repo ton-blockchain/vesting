@@ -10,8 +10,8 @@
     <script src="lib/tonweb-0.0.62.js"></script>
     <!--    <script src="lib/tonconnect-ui-1.0.0-beta.5.min.js"></script>-->
     <script src="https://unpkg.com/@tonconnect/ui@1.0.0-beta.5/dist/tonconnect-ui.min.js"></script>
-    <script src="js/check-smart-contract.js?1"></script>
-    <link rel="stylesheet" href="css/main.css?2">
+    <script src="js/check-smart-contract.js?3"></script>
+    <link rel="stylesheet" href="css/main.css?3">
 </head>
 <body>
 
@@ -102,7 +102,7 @@
     <div id="create_userAddress" class="address"></div>
 
     <div id="create_panel">
-        <div class="create_label">Vesting start time:</div>
+        <div class="create_label">Vesting start time (local timezone):</div>
         <div class="create_input">
             <input id="create_startTimeInput" type="datetime-local">
         </div>
@@ -698,7 +698,8 @@ ${address === senderAddressString ? senderBadge : removeButton(i)}
      */
     const renderVestingWallet = (vestingWalletInfo) => {
         /** @type {BN} */
-        const lockedAmount = BN.min(vestingWalletInfo.lockedAmount, vestingWalletInfo.balance);
+        let liquidAmount = vestingWalletInfo.balance.sub(vestingWalletInfo.lockedAmount);
+        if (liquidAmount.lt(new BN(0))) liquidAmount = new BN(0);
 
         /** @type {string} */
         const unlockString = vestingWalletInfo.unlockPeriod === vestingWalletInfo.vestingTotalDuration ? '-' :
@@ -741,14 +742,14 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         Liquid: <div class="vesting_hint">i<div class="vesting_hint_body">The owner may transfer that amount from the vesting address.</div></div>
     </div>
     <div class="vesting_value">
-         ${formatAmount(vestingWalletInfo.balance.sub(lockedAmount))}
+         ${formatAmount(liquidAmount)}
     </div>
 
     <div class="vesting_key">
         Unvested: <div class="vesting_hint">i<div class="vesting_hint_body">This amount is subject to restriction on transfer from the vesting address. The owner may transfer that amount only to whitelisted addresses.</div></div>
     </div>
     <div class="vesting_value strong">
-         ${formatAmount(lockedAmount)}
+         ${formatAmount(BN.min(vestingWalletInfo.lockedAmount, vestingWalletInfo.balance))}
     </div>
 
     <div class="vesting_key">
@@ -1167,6 +1168,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
             }
         } else {
             $('#whitelist_info').innerText = 'Invalid address';
+            addressForCheck = null;
         }
     }
 
