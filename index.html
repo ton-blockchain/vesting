@@ -542,6 +542,7 @@ ${address === senderAddressString ? senderBadge : removeButton(i)}
                         address: new TonWeb.utils.Address(address)
                     });
 
+                    /** @type {BN} */
                     const lockedAmount = await newVestingWallet.getLockedAmount(Math.floor(Date.now() / 1000));
                     const vestingData = await newVestingWallet.getVestingData();
                     console.log(vestingData);
@@ -686,7 +687,7 @@ ${address === senderAddressString ? senderBadge : removeButton(i)}
     // VESTING SCREEN
 
     /**
-     * @param vestingWalletInfo {*}
+     * @param vestingWalletInfo {{index: number, address: string, balance: BN, lockedAmount: BN, ownerAddress: string, vestingSenderAddress: string, whitelist: string[],  vestingStartTime: number, vestingTotalDuration: number, unlockPeriod: number, cliffDuration: number, vestingTotalAmount: BN}}
      * @return {HTMLDivElement}
      */
     const renderVestingWallet = (vestingWalletInfo) => {
@@ -846,7 +847,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         }
 
         /** @type {string} */
-        const comment = $('#sendPopup_commentInput').value
+        const comment = $('#sendPopup_commentInput').value;
 
         sendFromVesting(toAddress, amount, comment);
     });
