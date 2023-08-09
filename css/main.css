@@ -264,7 +264,6 @@ input::-webkit-date-and-time-value {
     user-select: text;
     -webkit-user-select: text;
     -moz-user-select: text;
-    cursor: text;
 }
 
 #address_userAddress {
