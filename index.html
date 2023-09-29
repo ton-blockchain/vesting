@@ -160,7 +160,13 @@
     <div id="sendPopup">
         <input id="sendPopup_toAddressInput" placeholder="Enter destination address" class="sendPopup_input">
         <input id="sendPopup_amountInput" placeholder="Enter amount" class="sendPopup_input">
-        <input id="sendPopup_commentInput" placeholder="Enter comment (optional)" class="sendPopup_input">
+        <select id="sendPopup_payloadTypeInput" class="sendPopup_input">
+            <option value="text">Text</option>
+            <option value="boc">BOC</option>
+            <option value="base64">Base64</option>
+            <option value="hex">HEX</option>
+        </select>
+        <input id="sendPopup_payloadInput" placeholder="Enter comment (optional)" class="sendPopup_input">
         <button id="sendPopup_sendButton" class="btn">Send</button>
     </div>
 </div>
@@ -827,7 +833,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         div.querySelector('#vesting_sendBtn' + index)?.addEventListener('click', () => {
             $('#sendPopup_toAddressInput').value = '';
             $('#sendPopup_amountInput').value = '';
-            $('#sendPopup_commentInput').value = '';
+            $('#sendPopup_payloadInput').value = '';
             showPopup('sendPopup');
         });
 
@@ -857,25 +863,47 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         }
 
         /** @type {string} */
-        const comment = $('#sendPopup_commentInput').value;
+        const payloadValue = $('#sendPopup_payloadInput').value;
 
-        sendFromVesting(toAddress, amount, comment);
+        /** @type {Cell | Uint8Array | string | undefined} */
+        let payload = undefined;
+
+        if (payloadValue.length > 0) {
+            switch ($('#sendPopup_payloadTypeInput').value) {
+                case 'text':
+                    payload = payloadValue;
+                    break;
+                case 'base64':
+                    payload = TonWeb.utils.base64ToBytes(payloadValue);
+                    break;
+                case 'hex':
+                    payload = TonWeb.utils.hexToBytes(payloadValue);
+                    break;
+                case 'boc':
+                    payload = TonWeb.boc.Cell.oneFromBoc(TonWeb.utils.base64ToBytes(payloadValue));
+                    break;
+                default:
+                    throw new Error('Invalid payload type');
+            }
+        }
+
+        sendFromVesting(toAddress, amount, payload);
     });
 
     /**
      * @param toAddress {string}
      * @param amountBN  {BN}
-     * @param textPayload? {string}
+     * @param messagePayload? {string | Uint8Array | Cell}
      * @return {Promise<void>}
      */
-    const sendFromVesting = async (toAddress, amountBN, textPayload) => {
+    const sendFromVesting = async (toAddress, amountBN, messagePayload) => {
         /** @type {Address} */
         const vestingWalletAddress = await vestingWallet.getAddress();
         /** @type {Cell} */
         const payload = vestingWallet.createInternalTransfer({
             address: toAddress,
             amount: amountBN,
-            payload: textPayload
+            payload: messagePayload
         });
         /** @type {string} */
         const payloadBase64 = TonWeb.utils.bytesToBase64(await payload.toBoc(false));

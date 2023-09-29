@@ -648,6 +648,10 @@ input::-webkit-date-and-time-value {
     border-radius: 0;
 }
 
+#sendPopup_payloadTypeInput {
+    height: 32px;
+}
+
 
 .sendPopup_input:focus {
     outline: none;
