@@ -320,6 +320,8 @@
     const TONCENTER_API_KEY = IS_TESTNET ? 'd843619b379084d133f061606beecbf72ae2bf60e0622e808f2a3f631673599b' : 'd843619b379084d133f061606beecbf72ae2bf60e0622e808f2a3f631673599b';
     /** @type {string} */
     const TONCENTER_URL = IS_TESTNET ? 'https://testnet.toncenter.com/api/v2/jsonRPC' : 'https://toncenter.com/api/v2/jsonRPC';
+    /** @type {string} */
+    const TONCENTER_INDEX_URL = IS_TESTNET ? 'https://testnet.toncenter.com/api/v3/' : 'https://toncenter.com/api/v3/';
     /** @type {TonWeb} */
     const tonweb = new TonWeb(new TonWeb.HttpProvider(TONCENTER_URL, {apiKey: TONCENTER_API_KEY}));
 
@@ -452,10 +454,10 @@ ${address === senderAddressString ? senderBadge : removeButton(i)}
     // STATE
 
     /** @type {string | null} */
-    let currentAddress = null; // string user-friendly bounceable
+    let currentAddress = null; // user-friendly
 
     /** @type {string | null} */
-    let myAddress = null; // user-friendly bounceable
+    let myAddress = null; // user-friendly
     /** @type {string | null} */
     let userAddress = null;
     /** @type {string | null} */
@@ -585,9 +587,37 @@ ${address === senderAddressString ? senderBadge : removeButton(i)}
                     vestingData.address = address;
                     vestingData.balance = new BN(addressInfo.balance);
                     vestingData.lockedAmount = lockedAmount;
-                    vestingData.ownerAddress = vestingData.ownerAddress.toString(true, true, true, IS_TESTNET);
-                    vestingData.vestingSenderAddress = vestingData.vestingSenderAddress.toString(true, true, true, IS_TESTNET);
-                    vestingData.whitelist = (await newVestingWallet.getWhitelist()).map(address => address.toString(true, true, true, IS_TESTNET));
+                    vestingData.ownerAddress = vestingData.ownerAddress.toString(true, true, false, IS_TESTNET);
+                    vestingData.vestingSenderAddress = vestingData.vestingSenderAddress.toString(true, true, false, IS_TESTNET);
+                    const whitelist = await newVestingWallet.getWhitelist();
+                    vestingData.whitelist = [];
+
+                    /**
+                     * @param address   {string}
+                     * @return {Promise<boolean>}
+                     */
+                    const checkIsWallet = async (address) => {
+                        const value = localStorage.getItem('format_' + address);
+                        if (value === 'true' || value === 'false') {
+                            return value === 'true';
+                        }
+                        const walletInfoRaw = await fetch(TONCENTER_INDEX_URL + 'wallet?address=' + address, {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-API-Key': TONCENTER_API_KEY
+                            },
+                        });
+                        const walletInfo = await walletInfoRaw.json();
+                        const isWallet = (walletInfo.wallet_type && walletInfo.wallet_type.startsWith('wallet')) || (walletInfo.status === 'uninit');
+                        localStorage.setItem('format_' + address, isWallet.toString());
+                        return isWallet;
+                    }
+
+                    for (const address of whitelist) {
+                        const isWallet = await checkIsWallet(address.toString(false));
+                        vestingData.whitelist.push(address.toString(true, true, !isWallet, IS_TESTNET));
+                    }
                     if (address !== currentAddress) return;
                     hidePopup(); // close probably opened popups related to old vestingWallet
                     vestingWallet = newVestingWallet;
@@ -621,8 +651,6 @@ ${address === senderAddressString ? senderBadge : removeButton(i)}
             if (!TonWeb.utils.Address.isValid(addressString)) {
                 alert('Invalid address');
             } else {
-                const address = new TonWeb.utils.Address(addressString);
-                addressString = address.toString(true, true, true, IS_TESTNET);
                 window.history.pushState(addressString, 'TON Vesting - ' + addressString, '#' + addressString);
                 setAddress(addressString);
             }
@@ -657,7 +685,7 @@ ${address === senderAddressString ? senderBadge : removeButton(i)}
      * @param account   {{address: string, publicKey:  string}}
      */
     const onWalletConnected = account => {
-        myAddress = new TonWeb.utils.Address(account.address).toString(true, true, true, IS_TESTNET);
+        myAddress = new TonWeb.utils.Address(account.address).toString(true, true, false, IS_TESTNET);
 
         console.log('my address ', myAddress);
 
@@ -1294,7 +1322,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
 
         if (currentScreen === 'createScreen') {
 
-            createState.whitelistAddresses.push(new TonWeb.utils.Address(newAddress).toString(true, true, true, IS_TESTNET));
+            createState.whitelistAddresses.push(newAddress);
             renderCreateWhitelist();
 
         } else if (currentScreen === 'addressScreen') {
