@@ -541,14 +541,36 @@ ${address === senderAddressString ? senderBadge : removeButton(i)}
                 const addressInfo = await tonweb.provider.getAddressInfo(address);
                 if (address !== currentAddress) return;
 
+                /** @type {string} */
+                const code098hash = '28030eb57f905fda5cbdc1b08955faf53065759063b958f36c6f861b2bcfc7be';
+                /** @type {string} */
+                const code099hash = '320ae22be268161d685a7900de30dfec797b797ec9801069ac5b7850750254a2';
+
+                /**
+                 * @param codeHexOrBytes    {string | Uint8Array}
+                 * @return {Promise<string>} hash hex
+                 */
+                const getCodeHash =  async (codeHexOrBytes) => {
+                    /** @type {Cell} */
+                    const codeCell = TonWeb.boc.Cell.oneFromBoc(codeHexOrBytes);
+                    return TonWeb.utils.bytesToHex(await codeCell.hash());
+                }
+
                 const VestingWalletClass = TonWeb.LockupWallets.VestingWalletV1;
-                let vestingWalletCode = TonWeb.utils.bytesToBase64(TonWeb.utils.hexToBytes(VestingWalletClass.codeHex));
+                /** @type {string} */
+                const vestingWalletCodeHash = await getCodeHash(VestingWalletClass.codeHex);
 
-                vestingWalletCode = 'te6cckECHAEAA/sAART/APSkE/S88sgLAQIBIAIDAgFIBAUDuPKDCNcYINMf0x/THwL4I7vyZO1E0NMf0x/T/zBauvKhUDO68qIC+QFAM/kQ8qP4ANs8INdKwAGOme1E7UXtR5Fb7WftZe1kjoLbPO1B7fEB8v+RMOL4QaT4Yds8ExQVA6zQbCIg10nBYJFb4AHQ0wMBcbCRW+D6QDDbPAHTH9M/+EtSQMcFI4IQp3M6zbqwjqRsEts8ghD3czrNAXCAGMjLBVAEzxYj+gITy2rLH8s/yYBA+wDjDhMUBgIBIAcIAc74SlJAxwUDghByWKabuhOwjtGOLAH6QH/IygAC+kQByMoHy//J0PhEECOBAQj0QfhkINdKwgAglQHUMNAB3rMS5oIQ8limmzJwgBjIywVQBM8WI/oCE8tqyx/LP8mAQPsA2zySXwPiFQIBIAkKAgEgERICAW4LDAIBYg0OABmtznaiaEAga5Drhf/AABmvHfaiaEAQa5DrhY/AAUutNG2eNvwiRw1AgIR6STfSmRDOaQPp/5g3gSgBt4EBSJhxWfMYQBMCAWoPEAAPol+1E0NcLH4BL6LHbPPpEAcjKB8v/ydD4RIEBCPQKb6ExhMBKbpGLbPPhF+Eb4R/hI+En4SvhL+ESBMCDbmEbbPNs8gTFgB+7UTQ0x8B+GHTHwH4YtP/Afhj9AQB+GTUAdDTPwH4ZdMfAfhm0x8B+GfTHwH4aPoAAfhp+kAB+Gr6QAH4a9HRAlzTB9TR+CPbPCDCAI6bIsAD8uBkIdDTA/pAMfpA+EpSIMcFs5JfBOMNkTDiAfsAFhcAZvhI+Ef4RvhFyMs/yx/LH8sf+En6AvhKzxb4S88WyfhE+EP4QvhByMsfyx/L//QAzMntVABg+EX4RqBSELySMHDg+EX4SKBSELmTMPhJ4PhJ+En4RROh+EepBPhG+EepBBAjqYShA/oh+kQByMoHy//J0PhEgQEI9ApvoTGPXzMBcrDAAvLgZQH6ADFx1yH6ADH6ADHTPzHTHzHTAAHAAPLgZtMAAZPUMNDeIXHbPI4qMdMfMCCCEE5zdEu6IYIQR2V0JLqxIYIQVnRDcLqxAYIQVm90Zbqx8uBn4w5wkl8D4iDCABoYGQLqAXDbPI5tINdJwgCOY9MfIcAAIoMLurEigRABurEighBH1UORurEighBZXwe8urEighBp+zBsurEighBWb3RlurEighBWdENwurHy4GcBwAAh10nCALCOFdMHMCDAZCHAd7EhwESxAcBXsfLgaJEw4pEw4uMNGhsADpNy+wKRMOIARAH6RAHD/5JbcOAB+DMgbpJbcODQINdJgwe5kltw4NcL/7oAGtMfMIIQVm90Zbry4GcGwSgk';
+                /** @type {string} */
+                const addressInfoCodeHash = await getCodeHash(TonWeb.utils.base64ToBytes(addressInfo.code));
 
-                console.log(addressInfo.code);
+                if (addressInfoCodeHash === code098hash) {
+                    console.log('Its not production vesting-v0.98 smart contract. Please use vesting-v1.00');
+                }
+                if (addressInfoCodeHash === code099hash) {
+                    console.log('Its not production vesting-v0.99 smart contract. Please use vesting-v1.00');
+                }
 
-                if (addressInfo.code === vestingWalletCode) {
+                if (vestingWalletCodeHash === addressInfoCodeHash) {
 
                     const newVestingWallet = new VestingWalletClass(tonweb.provider, {
                         address: new TonWeb.utils.Address(address)
