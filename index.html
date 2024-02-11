@@ -135,8 +135,8 @@
 
         <div class="create_label">Whitelist:
             <button id="create_addWhitelistButton" class="create_whitelist-btn">+</button>
-            <button id="create_addTonstakersWhitelistButton" class="create_whitelist-btn">Add Tonstakers</button>
-            <button id="create_addElectorWhitelistButton" class="create_whitelist-btn">Add Elector</button>
+<!--            <button id="create_addTonstakersWhitelistButton" class="create_whitelist-btn">Add Tonstakers</button>-->
+<!--            <button id="create_addElectorWhitelistButton" class="create_whitelist-btn">Add Elector</button>-->
         </div>
         <div id="create_whitelist-container" class="create_whitelist-container"></div>
 
@@ -488,7 +488,7 @@
         /** @type {string} */
         const tonstakersBadge = ` <div class="badge badge-blue">Tonstakers</div>`;
         /** @type {string} */
-        const electorBadge = ` <div class="badge badge-blue">Elector</div>`;
+        const electorBadge = isCreateScreen ? `` :  ` <div class="badge badge-blue">Elector</div>`; // do not fit in create mobile screen
 
         /**
          * @param i {number}
@@ -1020,7 +1020,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         // });
 
         div.querySelector('#vesting_addWhitelistBtn' + index)?.addEventListener('click', () => {
-            showAddWhitelistPopup();
+            showAddWhitelistPopup(false);
         });
 
         div.querySelector('#vesting_sendBtn' + index)?.addEventListener('click', () => {
@@ -1515,7 +1515,12 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
     onInput($('#whitelist_addressInput'), onWhitelistAddressInput);
     onWhitelistAddressInput();
 
-    const showAddWhitelistPopup = () => {
+    /**
+     * @param isCreate  {boolean}
+     */
+    const showAddWhitelistPopup = (isCreate) => {
+        $('#whitelist_useTonstakersPoolButton').style.display = isCreate ? 'none' : 'block';
+        $('#whitelist_useTonstakersJettonButton').style.display = isCreate ? 'none' : 'block';
         addressForCheck = null;
         $('#whitelist_addressInput').value = '';
         $('#whitelist_info').innerText = '';
@@ -1537,7 +1542,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
     }
 
     $('#create_addWhitelistButton').addEventListener('click', () => {
-        showAddWhitelistPopup();
+        showAddWhitelistPopup(true);
     });
 
     /**
@@ -1554,19 +1559,19 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         renderCreateWhitelist();
     }
 
-    $('#create_addTonstakersWhitelistButton').addEventListener('click', () => {
-        whitelistPredefinedAddress(STAKING_CONTRACT_ADDRESS)
-        if (createState.stakingJettonWalletAddress) {
-            whitelistPredefinedAddress(createState.stakingJettonWalletAddress)
-        } else if (stakingJettonWalletAddress) {
-            createState.stakingJettonWalletAddress = stakingJettonWalletAddress
-            whitelistPredefinedAddress(createState.stakingJettonWalletAddress)
-        }
-    });
+    // $('#create_addTonstakersWhitelistButton').addEventListener('click', () => {
+    //     whitelistPredefinedAddress(STAKING_CONTRACT_ADDRESS)
+    //     if (createState.stakingJettonWalletAddress) {
+    //         whitelistPredefinedAddress(createState.stakingJettonWalletAddress)
+    //     } else if (stakingJettonWalletAddress) {
+    //         createState.stakingJettonWalletAddress = stakingJettonWalletAddress
+    //         whitelistPredefinedAddress(createState.stakingJettonWalletAddress)
+    //     }
+    // });
 
-    $('#create_addElectorWhitelistButton').addEventListener('click', () => {
-        whitelistPredefinedAddress(ELECTOR_CONTRACT_ADDRESS)
-    });
+    // $('#create_addElectorWhitelistButton').addEventListener('click', () => {
+    //     whitelistPredefinedAddress(ELECTOR_CONTRACT_ADDRESS)
+    // });
 
     $('#addWhitelistPopup').addEventListener('click', e => e.stopImmediatePropagation());
     $('#sendPopup').addEventListener('click', e => e.stopImmediatePropagation());
