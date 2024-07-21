@@ -1176,7 +1176,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         const vestingWalletAddress = await vestingWallet.getAddress();
         /** @type {Cell} */
         const payload = vestingWallet.createInternalTransfer({
-            address: toAddress,
+            address: toAddress, // NOTE: if the vesting has not yet expired, we can only send bounceable messages to the whitelist. Since smart contracts (staking) are added to the whitelist, but not regular wallets, the destination address will be entered in bounceable format. No additional actions are required.
             amount: amountBN,
             payload: messagePayload
         });
