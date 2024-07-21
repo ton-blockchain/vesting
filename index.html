@@ -1090,9 +1090,8 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
             return;
         }
 
-        toAddress = STAKING_CONTRACT_ADDRESS
-        payload = TonWeb.boc.Cell.oneFromBoc(await prepareTonstakersPayload(STAKE_PAYLOAD));
-
+        const toAddress = STAKING_CONTRACT_ADDRESS
+        const payload = TonWeb.boc.Cell.oneFromBoc(await prepareTonstakersPayload(STAKE_PAYLOAD));
 
         sendFromVesting(toAddress, amount, payload);
     });
@@ -1110,8 +1109,8 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
             return;
         }
 
-        toAddress = stakingJettonWalletAddress;
-        payload = TonWeb.boc.Cell.oneFromBoc(await prepareTonstakersPayload(UNSTAKE_PAYLOAD, amount));
+        const toAddress = stakingJettonWalletAddress;
+        const payload = TonWeb.boc.Cell.oneFromBoc(await prepareTonstakersPayload(UNSTAKE_PAYLOAD, amount));
 
         sendFromVesting(toAddress, toNano(UNSTAKE_FEE), payload);
     });
