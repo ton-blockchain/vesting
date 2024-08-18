@@ -315,6 +315,7 @@
 
     /** @type {boolean} */
     const IS_TESTNET = window.location.href.indexOf('testnet=true') > -1;
+    const IS_CUSTOM_OWNERS = window.location.href.indexOf('custom_owners=true') > -1;
 
     if (IS_TESTNET) {
         $('.testnet-badge').style.display = 'block';
@@ -763,6 +764,7 @@
 
                     toggle($('#address_loading'), false);
                     $('#address_info').innerText = 'Unknown smart contract on this address';
+                    toggle($('#wallet_createButton'), IS_CUSTOM_OWNERS);
 
                 }
             }
@@ -852,6 +854,9 @@
             publicKey = await tonweb.provider.call2(currentAddress, 'get_public_key');
         } catch (e) {
             console.error(e);
+            if (IS_CUSTOM_OWNERS) {
+                publicKey = new BN(0);
+            }
         }
 
         if (!publicKey) {
