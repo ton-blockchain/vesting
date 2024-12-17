@@ -148,7 +148,18 @@ const checkSmartContract = async (tonweb, address) => {
                 text: 'Frozen account! UNFREEZE IT BEFORE ADDING TO THE WHITELIST'
             }
         }
-        if (await codeEquals(info.code, NOMINATOR_POOL_CODE_HASH)) {
+
+        if (address.toString(true, true, true, IS_TESTNET) === HIPO_TREASURY_ADDRESS) {
+            return {
+                status: SUCCESS,
+                text: 'Hipo Treasury'
+            }
+        } else if (address.toString(true, true, true, IS_TESTNET) === hipoJettonWalletAddress) {
+            return {
+                status: SUCCESS,
+                text: 'Hipo Jetton Wallet'
+            }
+        } else if (await codeEquals(info.code, NOMINATOR_POOL_CODE_HASH)) {
 
             return checkPool(tonweb, addressString);
 
