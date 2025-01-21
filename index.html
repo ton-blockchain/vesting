@@ -10,8 +10,8 @@
     <script src="lib/tonweb-0.0.62.js"></script>
     <!--    <script src="lib/tonconnect-ui-1.0.0-beta.5.min.js"></script>-->
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-    <script src="js/check-smart-contract.js?4"></script>
-    <link rel="stylesheet" href="css/main.css?3">
+    <script src="js/check-smart-contract.js?5"></script>
+    <link rel="stylesheet" href="css/main.css?4">
 </head>
 <body>
 
@@ -162,6 +162,8 @@
         <button id="whitelist_addButton" class="btn">Add</button>
         <button id="whitelist_useTonstakersPoolButton" class="btn">Use Tonstakers Pool</button>
         <button id="whitelist_useTonstakersJettonButton" class="btn" disabled>Use Tonstakers Jetton</button>
+        <button id="whitelist_useHipoTreasuryButton" class="btn">Use Hipo Treasury</button>
+        <button id="whitelist_useHipoJettonButton" class="btn">Use Hipo Jetton</button>
         <button id="whitelist_useElectorButton" class="btn">Use Elector</button>
     </div>
 
@@ -200,6 +202,28 @@
         <input id="unstakePopup_amountInput" placeholder="Enter amount" class="sendPopup_input" type="number">
         <div id="unstakePopup_stakingJettonWalletBalance" class="stakePopup_note"></div>
         <button id="unstakePopup_sendButton" class="btn sendPopup_button">Unstake</button>
+    </div>
+
+    <!-- Hipo Stake Popup -->
+
+    <div id="hipoStakePopup" class="sendPopup">
+        <div id="hipoStakePopup_label" class="stakePopup_label">
+            Stake with Hipo:
+        </div>
+        <input id="hipoStakePopup_amountInput" placeholder="Enter amount" class="sendPopup_input" type="number">
+        <div id="hipoStakePopup_availableToStake" class="stakePopup_note"></div>
+        <button id="hipoStakePopup_sendButton" class="btn sendPopup_button">Stake</button>
+    </div>
+
+    <!-- Hipo Unstake Popup -->
+
+    <div id="hipoUnstakePopup" class="sendPopup">
+        <div id="hipoUnstakePopup_label" class="stakePopup_label">
+            Unstake with Hipo:
+        </div>
+        <input id="hipoUnstakePopup_amountInput" placeholder="Enter amount" class="sendPopup_input" type="number">
+        <div id="hipoUnstakePopup_hipoJettonWalletBalance" class="stakePopup_note"></div>
+        <button id="hipoUnstakePopup_sendButton" class="btn sendPopup_button">Unstake</button>
     </div>
 </div>
 
@@ -264,10 +288,10 @@
     }
 
     /**
-     * @param name  {'addWhitelistPopup' | 'sendPopup' | 'stakePopup' | 'unstakePopup'}
+     * @param name  {'addWhitelistPopup' | 'sendPopup' | 'stakePopup' | 'unstakePopup' | 'hipoStakePopup' | 'hipoUnstakePopup'}
      */
     const showPopup = (name) => {
-        const popups = ['addWhitelistPopup', 'sendPopup', 'stakePopup', 'unstakePopup'];
+        const popups = ['addWhitelistPopup', 'sendPopup', 'stakePopup', 'unstakePopup', 'hipoStakePopup', 'hipoUnstakePopup'];
         toggle($('#modal'), true);
 
         for (const popup of popups) {
@@ -376,6 +400,23 @@
     const STAKE_FEE = "1"
     /** @type {string} */
     const UNSTAKE_FEE = "1.05"
+
+    // HIPO COMMON
+
+    /** @type {string} */
+    const HIPO_TREASURY_ADDRESS = IS_TESTNET ? 'kQAlDMBKCT8WJ4nwdwNRp0lvKMP4vUnHYspFPhEnyR36cg44' : 'EQCLyZHP4Xe8fpchQz76O-_RmUhaVc_9BAoGyJrwJrcbz2eZ';
+    /** @type {string} */
+    const HIPO_TOKEN_NAME = 'hTON';
+    /** @type {number} */
+    const HIPO_UNSTAKE_PAYLOAD = 0x595f07bc
+    /** @type {number} */
+    const HIPO_STAKE_PAYLOAD = 0x0
+    /** @type {string} */
+    const HIPO_FEE_RES = "1"
+    /** @type {string} */
+    const HIPO_STAKE_FEE = "0.05"
+    /** @type {string} */
+    const HIPO_UNSTAKE_FEE = "0.5"
 
     // ELECTOR COMMON
 
@@ -489,6 +530,8 @@
         /** @type {string} */
         const tonstakersBadge = ` <div class="badge badge-blue">Tonstakers</div>`;
         /** @type {string} */
+        const hipoBadge = ` <div class="badge badge-blue">Hipo</div>`;
+        /** @type {string} */
         const electorBadge = isCreateScreen ? `` :  ` <div class="badge badge-blue">Elector</div>`; // do not fit in create mobile screen
 
         /**
@@ -505,9 +548,11 @@
             const isSender = address === senderAddressString;
             const isTonstakersPool = address === STAKING_CONTRACT_ADDRESS;
             const isTonstakersJetton = address === stakingJettonWalletAddress || address === createState?.stakingJettonWalletAddress;
+            const isHipoTreasury = address === HIPO_TREASURY_ADDRESS;
+            const isHipoJetton = address === hipoJettonWalletAddress || address === createState?.hipoJettonWalletAddress;
             const isElector = address === ELECTOR_CONTRACT_ADDRESS;
-            const badge = isSender ? senderBadge : (isTonstakersPool || isTonstakersJetton ? tonstakersBadge : (isElector ? electorBadge : ''));
-            const title = isSender ? 'Sender address' : (isTonstakersPool ? 'Tonstakers Pool' : (isTonstakersJetton ? 'Tonstakers Jetton' : (isElector ? 'Elector' : 'Address')));
+            const badge = isSender ? senderBadge : (isTonstakersPool || isTonstakersJetton ? tonstakersBadge : (isHipoTreasury || isHipoJetton ? hipoBadge : (isElector ? electorBadge : '')));
+            const title = isSender ? 'Sender address' : (isTonstakersPool ? 'Tonstakers Pool' : (isTonstakersJetton ? 'Tonstakers Jetton' : (isHipoTreasury ? 'Hipo Treasury' : (isHipoJetton ? 'Hipo Jetton Wallet' : (isElector ? 'Elector' : 'Address')))));
             s += `<div class="create_whitelist-row">
                 <div class="create_whitelist-num">${i + 1}.</div>
                 <a class="create_whitelist-address address" href="${scanLink(address)}" title="${title}" target="_blank">
@@ -536,6 +581,9 @@
 
     /** @type {string | null} */
     let stakingJettonWalletAddress = null;
+
+    /** @type {string | null} */
+    let hipoJettonWalletAddress = null;
 
     // NAVIGATE
 
@@ -588,10 +636,38 @@
     /**
      * @param address   {string}
      */
+    const getHipoJettonWalletAddress = async (address) => {
+        const HIPO_JETTON_MINTER_ADDRESS_INDEX = 5;
+        try {
+            const hipoTreasuryResponse = await tonweb.provider.call2(HIPO_TREASURY_ADDRESS, 'get_treasury_state');
+            const hipoJettonMinterAddress = hipoTreasuryResponse[HIPO_JETTON_MINTER_ADDRESS_INDEX]?.beginParse().loadAddress();
+            if (!hipoJettonMinterAddress) throw new Error("hipoJetton minter address is not found.");
+
+            const queryAddress = new TonWeb.utils.Address(address);
+            const addressCell = new TonWeb.boc.Cell();
+            addressCell.bits.writeAddress(queryAddress);
+            const serializedQueryAddress = TonWeb.utils.bytesToBase64(await addressCell.toBoc(false));
+
+            const walletResponse = await tonweb.provider.call2(hipoJettonMinterAddress.toString(), 'get_wallet_address', [['tvm.Slice', serializedQueryAddress]]);
+            if (!walletResponse) throw new Error("hipoJetton wallet is not found.");
+
+            const hipoJettonWalletAddress = walletResponse.beginParse().loadAddress()
+
+            return hipoJettonWalletAddress.toString(true, true, true, IS_TESTNET)
+
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    /**
+     * @param address   {string}
+     */
     const setAddress = (address) => {
         currentAddress = address;
         vestingWallet = null;
         stakingJettonWalletAddress = null;
+        hipoJettonWalletAddress = null;
 
         $('.address_header').innerText = 'Address';
         $('#address_info').innerText = '';
@@ -622,6 +698,12 @@
                 stakingJettonWalletAddress = await getStakingJettonWalletAddress(address);
             } catch (e) {
                 console.error("Error fetching stakingJetton wallet:", e);
+            }
+
+            try {
+                hipoJettonWalletAddress = await getHipoJettonWalletAddress(address);
+            } catch (e) {
+                console.error("Error fetching hipoJetton wallet:", e);
             }
 
             if (!walletInfo) {
@@ -723,7 +805,7 @@
                         const unstakeStakingJettonBalanceEl = $('#unstakePopup_stakingJettonWalletBalance');
                         const vestingStakingJettonBalanceEl = $('#vesting_stakingJettonBalance');
                         const jettonAddressButton = $('#whitelist_useTonstakersJettonButton')
-                    
+
                         if (jettonAddressButton) {
                             jettonAddressButton.disabled = false;
                         }
@@ -742,6 +824,37 @@
                         } catch (e) {
                             // Can't get stakingJetton wallet data
                         }
+
+                        // force isWallet flag to false to render it correctly in whitelist
+                        localStorage.setItem('format_' + (new TonWeb.utils.Address(stakingJettonWalletAddress).toString(false)), 'false');
+                    }
+
+                    if (hipoJettonWalletAddress) {
+                        const unstakeHipoJettonBalanceEl = $('#hipoUnstakePopup_hipoJettonWalletBalance');
+                        const vestingHipoJettonBalanceEl = $('#vesting_hipoJettonBalance');
+                        const jettonAddressButton = $('#whitelist_useHipoJettonButton')
+
+                        if (jettonAddressButton) {
+                            jettonAddressButton.disabled = false;
+                        }
+
+                        try {
+                            const hipoJettonWallet = new TonWeb.token.jetton.JettonWallet(tonweb.provider, { address: hipoJettonWalletAddress });
+                            const hipoJettonWalletData = await hipoJettonWallet.getData();
+
+                            vestingData.hipoBalance = hipoJettonWalletData.balance;
+
+                            if (unstakeHipoJettonBalanceEl) {
+                                unstakeHipoJettonBalanceEl.innerHTML =
+                                    `Available: ${bold(formatAmount(vestingData.hipoBalance, HIPO_TOKEN_NAME))}<br/>
+                                    Additionally, ${HIPO_UNSTAKE_FEE} TON will be sent from the vesting wallet to settle fees`;
+                            }
+                        } catch (e) {
+                            // Can't get hipoJetton wallet data
+                        }
+
+                        // force isWallet flag to false to render it correctly in whitelist
+                        localStorage.setItem('format_' + (new TonWeb.utils.Address(hipoJettonWalletAddress).toString(false)), 'false');
                     }
 
                     for (const address of whitelist) {
@@ -895,6 +1008,10 @@
         let stakingAvailableAmount = vestingWalletInfo.balance.sub(toNano(STAKING_FEE_RES));
         if (stakingAvailableAmount.lt(new BN(0))) stakingAvailableAmount = new BN(0);
 
+        /** @type {BN} */
+        let hipoAvailableAmount = vestingWalletInfo.balance.sub(toNano(HIPO_FEE_RES));
+        if (hipoAvailableAmount.lt(new BN(0))) hipoAvailableAmount = new BN(0);
+
         /** @type {string} */
         const unlockString = vestingWalletInfo.unlockPeriod === vestingWalletInfo.vestingTotalDuration ? '-' :
             `Every ${formatPeriod(vestingWalletInfo.unlockPeriod)} ${vestingWalletInfo.cliffDuration > 0 ? 'after cliff period' : ''}`;
@@ -913,6 +1030,9 @@
 
         /** @type {boolean} */
         const isStakingContractWhitelisted = vestingWalletInfo.whitelist.includes(STAKING_CONTRACT_ADDRESS);
+
+        /** @type {boolean} */
+        const isHipoTreasuryWhitelisted = vestingWalletInfo.whitelist.includes(HIPO_TREASURY_ADDRESS);
 
         const div = document.createElement('div');
         div.innerHTML =
@@ -934,6 +1054,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
     <div class="vesting_value">
         ${formatAmount(vestingWalletInfo.balance)}
         ${vestingWalletInfo.jettonBalance ? `<div id="vesting_stakingJettonBalance">${formatAmount(vestingWalletInfo.jettonBalance, STAKE_TOKEN_NAME)}</div>` : ''}
+        ${vestingWalletInfo.hipoBalance ? `<div id="vesting_hipoJettonBalance">${formatAmount(vestingWalletInfo.hipoBalance, HIPO_TOKEN_NAME)}</div>` : ''}
     </div>
 
     <div class="vesting_key">
@@ -1008,11 +1129,17 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
 
     ${isOwner ? `<button id="vesting_sendBtn${index}" class="btn">Send from Vesting</button>` : ``}
     ${isSender ? `<button id="vesting_addWhitelistBtn${index}" class="btn">Add whitelist</button>` : ``}
-    ${isOwner && isStakingContractWhitelisted ?
+    ${isOwner && (isStakingContractWhitelisted || isHipoTreasuryWhitelisted) ?
         `<div class="vesting_3rd">
             <div class="vesting_3rd-title">Use with 3rd party</div>
-            <button id="vesting_stakeBtn${index}" class="btn">Stake with Tonstakers</button>
-            <button id="vesting_unstakeBtn${index}" class="btn vesting_unstakeBtn" ${stakingJettonWalletAddress ? '' : 'disabled'}>Unstake with Tonstakers</button>
+            ${isStakingContractWhitelisted ? `
+                <button id="vesting_stakeBtn${index}" class="btn">Stake with Tonstakers</button>
+                <button id="vesting_unstakeBtn${index}" class="btn vesting_unstakeBtn" ${stakingJettonWalletAddress ? '' : 'disabled'}>Unstake with Tonstakers</button>
+            ` : ''}
+            ${isHipoTreasuryWhitelisted ? `
+                <button id="vesting_hipoStakeBtn${index}" class="btn">Stake with Hipo</button>
+                <button id="vesting_hipoUnstakeBtn${index}" class="btn vesting_unstakeBtn" ${hipoJettonWalletAddress ? '' : 'disabled'}>Unstake with Hipo</button>
+            ` : ''}
         </div>` : ``}
 </div>`
 
@@ -1045,6 +1172,18 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         div.querySelector('#vesting_unstakeBtn' + index)?.addEventListener('click', () => {
             $('#unstakePopup_amountInput').value = '';
             showPopup('unstakePopup');
+        });
+
+        $('#hipoStakePopup_availableToStake').innerHTML = `Available: ${bold(formatAmount(hipoAvailableAmount))}<br/>${HIPO_FEE_RES} TON reserved for fees`;
+
+        div.querySelector('#vesting_hipoStakeBtn' + index)?.addEventListener('click', () => {
+            $('#hipoStakePopup_amountInput').value = '';
+            showPopup('hipoStakePopup');
+        });
+
+        div.querySelector('#vesting_hipoUnstakeBtn' + index)?.addEventListener('click', () => {
+            $('#hipoUnstakePopup_amountInput').value = '';
+            showPopup('hipoUnstakePopup');
         });
 
         return div;
@@ -1118,6 +1257,68 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         const payload = TonWeb.boc.Cell.oneFromBoc(await prepareTonstakersPayload(UNSTAKE_PAYLOAD, amount));
 
         sendFromVesting(toAddress, toNano(UNSTAKE_FEE), payload);
+    });
+
+    const prepareHipoPayload = async (payloadType, inputAmount = null, toAddress = null, waitTillRoundEnd = false, fillOrKill = false) => {
+        const payload = new TonWeb.boc.Cell();
+        payload.bits.writeUint(payloadType, 32);
+
+        switch (payloadType) {
+            case HIPO_STAKE_PAYLOAD:
+                payload.bits.writeUint('d'.charCodeAt(0), 8);
+                break;
+            case HIPO_UNSTAKE_PAYLOAD:
+                payload.bits.writeUint(0, 64);
+                payload.bits.writeCoins(inputAmount.toNumber());
+
+                const queryAddress = new TonWeb.utils.Address(currentAddress);
+                payload.bits.writeAddress(queryAddress);
+
+                payload.bits.writeBit(0);
+
+                break;
+        }
+
+        return payload.toBoc(false);
+    }
+
+    $('#hipoStakePopup_sendButton').addEventListener('click', async () => {
+        /** @type {BN} */
+        let amount;
+        try {
+            const amountString = $('#hipoStakePopup_amountInput').value;
+            if (!amountString) throw new Error();
+            amount = toNano(amountString);
+            if (!amount.gt(new BN(0))) throw new Error();
+            amount = amount.add(toNano(HIPO_STAKE_FEE));
+        } catch (e) {
+            alert('Not valid amount');
+            return;
+        }
+
+        const toAddress = HIPO_TREASURY_ADDRESS
+        const payload = TonWeb.boc.Cell.oneFromBoc(await prepareHipoPayload(HIPO_STAKE_PAYLOAD));
+
+        sendFromVesting(toAddress, amount, payload);
+    });
+
+    $('#hipoUnstakePopup_sendButton').addEventListener('click', async () => {
+        /** @type {BN} */
+        let amount;
+        try {
+            const amountString = $('#hipoUnstakePopup_amountInput').value;
+            if (!amountString) throw new Error();
+            amount = toNano(amountString);
+            if (!amount.gt(new BN(0))) throw new Error();
+        } catch (e) {
+            alert('Not valid amount');
+            return;
+        }
+
+        const toAddress = hipoJettonWalletAddress;
+        const payload = TonWeb.boc.Cell.oneFromBoc(await prepareHipoPayload(HIPO_UNSTAKE_PAYLOAD, amount));
+
+        sendFromVesting(toAddress, toNano(HIPO_UNSTAKE_FEE), payload);
     });
 
     // SEND
@@ -1450,13 +1651,17 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
             const vestingWalletAddress = await vestingWallet.getAddress();
             const stakingJettonWalletAddress = await getStakingJettonWalletAddress(vestingWalletAddress.toString(true, true, true, IS_TESTNET));
             const stakingJettonWalletAddressSting = stakingJettonWalletAddress.toString(true, true, true, IS_TESTNET);
+            const hipoJettonWalletAddress = await getHipoJettonWalletAddress(vestingWalletAddress.toString(true, true, true, IS_TESTNET));
+            const hipoJettonWalletAddressString = hipoJettonWalletAddress.toString(true, true, true, IS_TESTNET);
 
-            if (createState.whitelistAddresses.includes(createState.stakingJettonWalletAddress)) {
-                createState.whitelistAddresses = createState.whitelistAddresses.map(address => address === createState.stakingJettonWalletAddress ? stakingJettonWalletAddressSting : address);
+            if (createState.whitelistAddresses.includes(createState.stakingJettonWalletAddress) || createState.whitelistAddresses.includes(createState.hipoJettonWalletAddress)) {
+                createState.whitelistAddresses = createState.whitelistAddresses.map(address => address === createState.stakingJettonWalletAddress ? stakingJettonWalletAddressSting : (address === createState.hipoJettonWalletAddress ? hipoJettonWalletAddressString : address));
                 createState.stakingJettonWalletAddress = stakingJettonWalletAddressSting;
+                createState.hipoJettonWalletAddress = hipoJettonWalletAddressString;
                 renderCreateWhitelist();
             } else {
                 createState.stakingJettonWalletAddress = stakingJettonWalletAddressSting;
+                createState.hipoJettonWalletAddress = hipoJettonWalletAddressString;
             }
         }
     }
@@ -1525,6 +1730,8 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
     const showAddWhitelistPopup = (isCreate) => {
         $('#whitelist_useTonstakersPoolButton').style.display = isCreate ? 'none' : 'block';
         $('#whitelist_useTonstakersJettonButton').style.display = isCreate ? 'none' : 'block';
+        $('#whitelist_useHipoTreasuryButton').style.display = isCreate ? 'none' : 'block';
+        $('#whitelist_useHipoJettonButton').style.display = isCreate ? 'none' : 'block';
         addressForCheck = null;
         $('#whitelist_addressInput').value = '';
         $('#whitelist_info').innerText = '';
@@ -1573,6 +1780,16 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
     //     }
     // });
 
+    // $('#create_addHipoWhitelistButton').addEventListener('click', () => {
+    //     whitelistPredefinedAddress(HIPO_TREASURY_ADDRESS)
+    //     if (createState.hipoJettonWalletAddress) {
+    //         whitelistPredefinedAddress(createState.hipoJettonWalletAddress)
+    //     } else if (hipoJettonWalletAddress) {
+    //         createState.hipoJettonWalletAddress = hipoJettonWalletAddress
+    //         whitelistPredefinedAddress(createState.hipoJettonWalletAddress)
+    //     }
+    // });
+
     // $('#create_addElectorWhitelistButton').addEventListener('click', () => {
     //     whitelistPredefinedAddress(ELECTOR_CONTRACT_ADDRESS)
     // });
@@ -1581,6 +1798,8 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
     $('#sendPopup').addEventListener('click', e => e.stopImmediatePropagation());
     $('#stakePopup').addEventListener('click', e => e.stopImmediatePropagation());
     $('#unstakePopup').addEventListener('click', e => e.stopImmediatePropagation());
+    $('#hipoStakePopup').addEventListener('click', e => e.stopImmediatePropagation());
+    $('#hipoUnstakePopup').addEventListener('click', e => e.stopImmediatePropagation());
 
     /**
      * @param a {string}
@@ -1601,6 +1820,16 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         onWhitelistAddressInput();
     });
 
+    $('#whitelist_useHipoTreasuryButton').addEventListener('click', async () => {
+        $('#whitelist_addressInput').value = HIPO_TREASURY_ADDRESS;
+        onWhitelistAddressInput();
+    })
+
+    $('#whitelist_useHipoJettonButton').addEventListener('click', async() => {
+        $('#whitelist_addressInput').value = createState?.hipoJettonWalletAddress || hipoJettonWalletAddress;
+        onWhitelistAddressInput();
+    })
+
     $('#whitelist_useElectorButton').addEventListener('click', async () => {
         $('#whitelist_addressInput').value = ELECTOR_CONTRACT_ADDRESS;
         onWhitelistAddressInput();
@@ -1620,18 +1849,23 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
             return;
         }
 
-        for (let address of createState.whitelistAddresses) {
-            if (isEqualAddresses(address, newAddress)) {
-                return;
-            }
-        }
-
         if (currentScreen === 'createScreen') {
+            for (let address of createState.whitelistAddresses) {
+                if (isEqualAddresses(address, newAddress)) {
+                    return;
+                }
+            }
 
             createState.whitelistAddresses.push(newAddress);
             renderCreateWhitelist();
 
         } else if (currentScreen === 'addressScreen') {
+            const whitelistAddresses = await vestingWallet.getWhitelist()
+            for (let address of whitelistAddresses) {
+                if (isEqualAddresses(address, newAddress)) {
+                    return;
+                }
+            }
 
             /** @type {Address} */
             const vestingWalletAddress = await vestingWallet.getAddress();
