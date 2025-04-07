@@ -524,6 +524,9 @@
     /** @type {string | null} */
     let currentAddress = null; // user-friendly
 
+    /** @type {boolean} */
+    let currentAddressIsWallet = false;
+
     /** @type {string | null} */
     let myAddress = null; // user-friendly
     /** @type {string | null} */
@@ -544,6 +547,7 @@
 
     const clear = () => {
         currentAddress = null;
+        currentAddressIsWallet = false;
         vestingWallet = null;
         clearTimeout(reloadTimeoutId);
     }
@@ -590,6 +594,7 @@
      */
     const setAddress = (address) => {
         currentAddress = address;
+        currentAddressIsWallet = false;
         vestingWallet = null;
         stakingJettonWalletAddress = null;
 
@@ -638,6 +643,7 @@
 
             } else if (walletInfo.wallet === true) {
 
+                currentAddressIsWallet = true;
                 toggle($('#address_loading'), false);
                 $('.address_header').innerText = 'Wallet';
                 toggle($('#wallet_createButton'), true);
@@ -652,6 +658,8 @@
                 const code098hash = '28030eb57f905fda5cbdc1b08955faf53065759063b958f36c6f861b2bcfc7be';
                 /** @type {string} */
                 const code099hash = '320ae22be268161d685a7900de30dfec797b797ec9801069ac5b7850750254a2';
+
+                const MULTISIG_V2_CODE_HASH = '6a0a0882f7b34a9d8fc2f7bf9f5decfe3a6cb029e33129af33560872f010edd9';
 
                 /**
                  * @param codeHexOrBytes    {string | Uint8Array}
@@ -677,7 +685,15 @@
                     console.log('Its not production vesting-v0.99 smart contract. Please use vesting-v1.00');
                 }
 
-                if (vestingWalletCodeHash === addressInfoCodeHash) {
+                if (addressInfoCodeHash === MULTISIG_V2_CODE_HASH) {
+
+                    toggle($('#address_loading'), false);
+                    $('.address_header').innerText = 'Multisig Wallet';
+                    toggle($('#wallet_createButton'), true);
+                    $('#address_info').innerHTML = 'This is a multisig wallet.<br>' +
+                        'You can create a vesting for this user.';
+
+                } else if (vestingWalletCodeHash === addressInfoCodeHash) {
 
                     const newVestingWallet = new VestingWalletClass(tonweb.provider, {
                         address: new TonWeb.utils.Address(address)
@@ -723,7 +739,7 @@
                         const unstakeStakingJettonBalanceEl = $('#unstakePopup_stakingJettonWalletBalance');
                         const vestingStakingJettonBalanceEl = $('#vesting_stakingJettonBalance');
                         const jettonAddressButton = $('#whitelist_useTonstakersJettonButton')
-                    
+
                         if (jettonAddressButton) {
                             jettonAddressButton.disabled = false;
                         }
@@ -854,7 +870,7 @@
             publicKey = await tonweb.provider.call2(currentAddress, 'get_public_key');
         } catch (e) {
             console.error(e);
-            if (IS_CUSTOM_OWNERS) {
+            if (!currentAddressIsWallet) {
                 publicKey = new BN(0);
             }
         }
