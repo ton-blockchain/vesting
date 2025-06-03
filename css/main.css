@@ -641,6 +641,8 @@ input::-webkit-date-and-time-value {
 #whitelist_useTonstakersJettonButton,
 #whitelist_useHipoTreasuryButton,
 #whitelist_useHipoJettonButton,
+#whitelist_useKTONPoolButton,
+#whitelist_useKTONJettonButton,
 #whitelist_useElectorButton {
     margin-top: 10px;
     width: 100%;

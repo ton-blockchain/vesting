@@ -149,7 +149,17 @@ const checkSmartContract = async (tonweb, address) => {
             }
         }
 
-        if (address.toString(true, true, true, IS_TESTNET) === HIPO_TREASURY_ADDRESS) {
+        if (address.toString(true, true, true, IS_TESTNET) === KTON_POOL_ADDRESS) {
+            return {
+                status: SUCCESS,
+                text: 'KTON Pool'
+            }
+        } else if (address.toString(true, true, true, IS_TESTNET) === ktonJettonWalletAddress) {
+            return {
+                status: SUCCESS,
+                text: 'KTON Jetton Wallet'
+            }
+        } else if (address.toString(true, true, true, IS_TESTNET) === HIPO_TREASURY_ADDRESS) {
             return {
                 status: SUCCESS,
                 text: 'Hipo Treasury'
