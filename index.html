@@ -1192,6 +1192,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         ${formatAmount(vestingWalletInfo.balance)}
         ${vestingWalletInfo.jettonBalance ? `<div id="vesting_stakingJettonBalance">${formatAmount(vestingWalletInfo.jettonBalance, STAKE_TOKEN_NAME)}</div>` : ''}
         ${vestingWalletInfo.hipoBalance ? `<div id="vesting_hipoJettonBalance">${formatAmount(vestingWalletInfo.hipoBalance, HIPO_TOKEN_NAME)}</div>` : ''}
+        ${vestingWalletInfo.ktonBalance ? `<div id="vesting_ktonJettonBalance">${formatAmount(vestingWalletInfo.ktonBalance, KTON_TOKEN_NAME)}</div>` : ''}
     </div>
 
     <div class="vesting_key">
