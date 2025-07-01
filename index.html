@@ -447,6 +447,8 @@
     /** @type {string} */
     const KTON_POOL_ADDRESS = IS_TESTNET ? 'kQD2y9eUotYw7VprrD0UJvAigDVXwgCCLWAl-DjaamCHniVr' : 'EQDsW2P6nuP1zopKoNiCYj2xhqDan0cBuULQ8MH4o7dBt_7a' //<- this is premium, public = 'EQA9HwEZD_tONfVz6lJS0PVKR5viEiEGyj9AuQewGQVnXPg0';
     /** @type {string} */
+    const KTON_JETTON_MINTER_ADDRESS = IS_TESTNET ? 'kQC8rBgRVn3Pd8XNDP_UbD1n8SaLvOdI1JqoJHie3ukrqjXs' : 'EQCtD-q8vItSYffdO3p23-gcnFpPIpcGx9tE1ImQ3f3thV4l'; //<- this is premium, public = 'EQBuIhXNNkWf9AW9miNGNTSO_uFZ23ejfIWrieXge5f733mw'
+    /** @type {string} */
     const KTON_TOKEN_NAME = 'KTON';
     /** @type {number} */
     const KTON_UNSTAKE_PAYLOAD = 0x595f07bc
@@ -718,8 +720,9 @@
     const getKTONJettonWalletAddress = async (address) => {
         const KTON_JETTON_MINTER_ADDRESS_INDEX = 16;
         try {
-            const ktonContractResponse = await tonweb.provider.call2(KTON_POOL_ADDRESS, 'get_pool_full_data');
-            const ktonJettonMinterAddress = ktonContractResponse[KTON_JETTON_MINTER_ADDRESS_INDEX]?.beginParse().loadAddress();
+            // TODO: tonweb does not support tvm.StackEntryList, so we hardcode the minter address here
+            //const ktonContractResponse = await tonweb.provider.call2(KTON_POOL_ADDRESS, 'get_pool_full_data');
+            const ktonJettonMinterAddress = KTON_JETTON_MINTER_ADDRESS; //ktonContractResponse[KTON_JETTON_MINTER_ADDRESS_INDEX]?.beginParse().loadAddress();
             if (!ktonJettonMinterAddress) throw new Error("KTON Jetton minter address is not found.");
 
             const queryAddress = new TonWeb.utils.Address(address);
