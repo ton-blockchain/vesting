@@ -727,7 +727,7 @@
             addressCell.bits.writeAddress(queryAddress);
             const serializedQueryAddress = TonWeb.utils.bytesToBase64(await addressCell.toBoc(false));
 
-            const walletResponse = await tonweb.provider.call2(stakingJettonMinterAddress.toString(), 'get_wallet_address', [['tvm.Slice', serializedQueryAddress]]);
+            const walletResponse = await tonweb.provider.call2(ktonJettonMinterAddress.toString(), 'get_wallet_address', [['tvm.Slice', serializedQueryAddress]]);
             if (!walletResponse) throw new Error("KTON Jetton wallet is not found.");
 
             const ktonJettonWalletAddress = walletResponse.beginParse().loadAddress()
