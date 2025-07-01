@@ -7,7 +7,7 @@
 
     <title>TON Vesting Wallet</title>
 
-    <script src="lib/tonweb-0.0.62.js"></script>
+    <script src="lib/tonweb-0.0.66.js"></script>
     <!--    <script src="lib/tonconnect-ui-1.0.0-beta.5.min.js"></script>-->
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <script src="js/check-smart-contract.js?5.1"></script>
@@ -719,7 +719,7 @@
         const KTON_JETTON_MINTER_ADDRESS_INDEX = 16;
         try {
             const ktonContractResponse = await tonweb.provider.call2(KTON_POOL_ADDRESS, 'get_pool_full_data');
-            const ktonJettonMinterAddress = stakingContractResponse[KTON_JETTON_MINTER_ADDRESS_INDEX]?.beginParse().loadAddress();
+            const ktonJettonMinterAddress = ktonContractResponse[KTON_JETTON_MINTER_ADDRESS_INDEX]?.beginParse().loadAddress();
             if (!ktonJettonMinterAddress) throw new Error("KTON Jetton minter address is not found.");
 
             const queryAddress = new TonWeb.utils.Address(address);
