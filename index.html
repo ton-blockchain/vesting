@@ -16,7 +16,7 @@
 <body>
 
 <div class="testnet-badge" style="display: none">
-    ATTENTION! This is the test network — don’t send real Toncoin!
+    ATTENTION! This is the test network — don't send real Toncoin!
 </div>
 
 <!--Header-->
@@ -164,7 +164,7 @@
         <button id="whitelist_useTonstakersJettonButton" class="btn" disabled>Use Tonstakers Jetton</button>
         <button id="whitelist_useHipoTreasuryButton" class="btn">Use Hipo Treasury</button>
         <button id="whitelist_useHipoJettonButton" class="btn">Use Hipo Jetton</button>
-        <button id="whitelist_useKTONPoolButton" class="btn">KTON Premium</button>
+        <button id="whitelist_useKTONPoolButton" class="btn">Use KTON Premium</button>
         <button id="whitelist_useKTONJettonButton" class="btn">Use KTON Jetton</button>
         <button id="whitelist_useElectorButton" class="btn">Use Elector</button>
     </div>
@@ -1316,7 +1316,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
             ` : ''}
             ${isKTONPoolWhitelisted ? `
                 <button id="vesting_ktonStakeBtn${index}" class="btn">Stake with KTON</button>
-                <button id="vesting_ktonUnstakeBtn${index}" class="btn vesting_unstakeBtn" ${ktonJettonWalletAddress ? '' : 'disabled'}>Unstake with KTON</button>
+                <button id="vesting_ktonUnstakeBtn${index}" class="btn vesting_unstakeBtn" ${ktonJettonWalletAddress && vestingWalletInfo.whitelist.includes(ktonJettonWalletAddress) ? '' : 'disabled'}>Unstake with KTON</button>
             ` : ''}
         </div>` : ``}
 </div>`
