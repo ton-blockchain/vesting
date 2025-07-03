@@ -585,11 +585,41 @@
          */
         const removeButton = (i) => isCreateScreen ? `<button class="create_whitelist-btn" onclick="removeWhitelist(${i})">-</button>` : ``;
 
+        // Group addresses by type for better organization
+        const groupedAddresses = [];
+        
+        // Helper function to get address type and priority for sorting
+        const getAddressType = (address) => {
+            if (address === senderAddressString) return { type: 'sender', priority: 0 };
+            if (address === STAKING_CONTRACT_ADDRESS) return { type: 'tonstakers', priority: 1 };
+            if (address === stakingJettonWalletAddress || address === createState?.stakingJettonWalletAddress) return { type: 'tonstakers', priority: 2 };
+            if (address === KTON_POOL_ADDRESS) return { type: 'kton', priority: 3 };
+            if (address === ktonJettonWalletAddress || address === createState?.ktonJettonWalletAddress) return { type: 'kton', priority: 4 };
+            if (address === HIPO_TREASURY_ADDRESS) return { type: 'hipo', priority: 5 };
+            if (address === hipoJettonWalletAddress || address === createState?.hipoJettonWalletAddress) return { type: 'hipo', priority: 6 };
+            if (address === ELECTOR_CONTRACT_ADDRESS) return { type: 'elector', priority: 7 };
+            return { type: 'other', priority: 8 };
+        };
+
+        // Sort addresses by type and priority
+        const sortedList = [...list].sort((a, b) => {
+            const typeA = getAddressType(a);
+            const typeB = getAddressType(b);
+            
+            // First sort by type priority
+            if (typeA.priority !== typeB.priority) {
+                return typeA.priority - typeB.priority;
+            }
+            
+            // Within same type, maintain original order
+            return list.indexOf(a) - list.indexOf(b);
+        });
+
         /** @type {string} */
         let s = '';
-        for (let i = 0; i < list.length; i++) {
+        for (let i = 0; i < sortedList.length; i++) {
             /** @type {string} */
-            const address = list[i];
+            const address = sortedList[i];
             const isSender = address === senderAddressString;
             const isTonstakersPool = address === STAKING_CONTRACT_ADDRESS;
             const isTonstakersJetton = address === stakingJettonWalletAddress || address === createState?.stakingJettonWalletAddress;
@@ -600,12 +630,16 @@
             const isElector = address === ELECTOR_CONTRACT_ADDRESS;
             const badge = isSender ? senderBadge : (isTonstakersPool || isTonstakersJetton ? tonstakersBadge : (isKTONPool || isKTONJetton ? ktonBadge : (isHipoTreasury || isHipoJetton ? hipoBadge : (isElector ? electorBadge : ''))));
             const title = isSender ? 'Sender address' : (isTonstakersPool ? 'Tonstakers Pool' : (isTonstakersJetton ? 'Tonstakers Jetton' : (isHipoTreasury ? 'Hipo Treasury' : (isHipoJetton ? 'Hipo Jetton Wallet' : ( isKTONPool ? 'KTON Pool' : (isKTONJetton ? 'KTON Jetton' : (isElector ? 'Elector' : 'Address')))))));
+            
+            // For create screen, we need to use original index for remove button
+            const originalIndex = isCreateScreen ? list.indexOf(address) : i;
+            
             s += `<div class="create_whitelist-row">
                 <div class="create_whitelist-num">${i + 1}.</div>
                 <a class="create_whitelist-address address" href="${scanLink(address)}" title="${title}" target="_blank">
                     ${formatAddress(address)}
                 </a>
-                ${badge + (isSender ? '' : removeButton(i))}
+                ${badge + (isSender ? '' : removeButton(originalIndex))}
             </div>`;
         }
         container.innerHTML = s;
