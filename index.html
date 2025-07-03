@@ -7,16 +7,16 @@
 
     <title>TON Vesting Wallet</title>
 
-    <script src="lib/tonweb-0.0.62.js"></script>
+    <script src="lib/tonweb-0.0.66.js"></script>
     <!--    <script src="lib/tonconnect-ui-1.0.0-beta.5.min.js"></script>-->
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-    <script src="js/check-smart-contract.js?5"></script>
-    <link rel="stylesheet" href="css/main.css?4">
+    <script src="js/check-smart-contract.js?5.1"></script>
+    <link rel="stylesheet" href="css/main.css?4.1">
 </head>
 <body>
 
 <div class="testnet-badge" style="display: none">
-    ATTENTION! This is the test network — don’t send real Toncoin!
+    ATTENTION! This is the test network — don't send real Toncoin!
 </div>
 
 <!--Header-->
@@ -164,6 +164,8 @@
         <button id="whitelist_useTonstakersJettonButton" class="btn" disabled>Use Tonstakers Jetton</button>
         <button id="whitelist_useHipoTreasuryButton" class="btn">Use Hipo Treasury</button>
         <button id="whitelist_useHipoJettonButton" class="btn">Use Hipo Jetton</button>
+        <button id="whitelist_useKTONPoolButton" class="btn">Use KTON Premium</button>
+        <button id="whitelist_useKTONJettonButton" class="btn">Use KTON Jetton</button>
         <button id="whitelist_useElectorButton" class="btn">Use Elector</button>
     </div>
 
@@ -224,6 +226,28 @@
         <input id="hipoUnstakePopup_amountInput" placeholder="Enter amount" class="sendPopup_input" type="number">
         <div id="hipoUnstakePopup_hipoJettonWalletBalance" class="stakePopup_note"></div>
         <button id="hipoUnstakePopup_sendButton" class="btn sendPopup_button">Unstake</button>
+    </div>
+
+    <!-- KTON Stake Popup -->
+
+    <div id="ktonStakePopup" class="sendPopup">
+        <div id="ktonStakePopup_label" class="stakePopup_label">
+            Stake with KTON:
+        </div>
+        <input id="ktonStakePopup_amountInput" placeholder="Enter amount" class="sendPopup_input" type="number">
+        <div id="ktonStakePopup_availableToStake" class="stakePopup_note"></div>
+        <button id="ktonStakePopup_sendButton" class="btn sendPopup_button">Stake</button>
+    </div>
+
+    <!-- KTON Unstake Popup -->
+
+    <div id="ktonUnstakePopup" class="sendPopup">
+        <div id="ktonUnstakePopup_label" class="stakePopup_label">
+            Unstake with KTON:
+        </div>
+        <input id="ktonUnstakePopup_amountInput" placeholder="Enter amount" class="sendPopup_input" type="number">
+        <div id="ktonUnstakePopup_ktonJettonWalletBalance" class="stakePopup_note"></div>
+        <button id="ktonUnstakePopup_sendButton" class="btn sendPopup_button">Unstake</button>
     </div>
 </div>
 
@@ -288,10 +312,10 @@
     }
 
     /**
-     * @param name  {'addWhitelistPopup' | 'sendPopup' | 'stakePopup' | 'unstakePopup' | 'hipoStakePopup' | 'hipoUnstakePopup'}
+     * @param name  {'addWhitelistPopup' | 'sendPopup' | 'stakePopup' | 'unstakePopup' | 'hipoStakePopup' | 'hipoUnstakePopup' | 'ktonStakePopup' | 'ktonUnstakePopup'}
      */
     const showPopup = (name) => {
-        const popups = ['addWhitelistPopup', 'sendPopup', 'stakePopup', 'unstakePopup', 'hipoStakePopup', 'hipoUnstakePopup'];
+        const popups = ['addWhitelistPopup', 'sendPopup', 'stakePopup', 'unstakePopup', 'hipoStakePopup', 'hipoUnstakePopup' , 'ktonStakePopup', 'ktonUnstakePopup'];
         toggle($('#modal'), true);
 
         for (const popup of popups) {
@@ -418,6 +442,25 @@
     /** @type {string} */
     const HIPO_UNSTAKE_FEE = "0.5"
 
+    // KTON COMMON
+
+    /** @type {string} */
+    const KTON_POOL_ADDRESS = IS_TESTNET ? 'kQD2y9eUotYw7VprrD0UJvAigDVXwgCCLWAl-DjaamCHniVr' : 'EQDsW2P6nuP1zopKoNiCYj2xhqDan0cBuULQ8MH4o7dBt_7a' //<- this is premium, public = 'EQA9HwEZD_tONfVz6lJS0PVKR5viEiEGyj9AuQewGQVnXPg0';
+    /** @type {string} */
+    const KTON_JETTON_MINTER_ADDRESS = IS_TESTNET ? 'kQC8rBgRVn3Pd8XNDP_UbD1n8SaLvOdI1JqoJHie3ukrqjXs' : 'EQCtD-q8vItSYffdO3p23-gcnFpPIpcGx9tE1ImQ3f3thV4l'; //<- this is premium, public = 'EQBuIhXNNkWf9AW9miNGNTSO_uFZ23ejfIWrieXge5f733mw'
+    /** @type {string} */
+    const KTON_TOKEN_NAME = 'KTON';
+    /** @type {number} */
+    const KTON_UNSTAKE_PAYLOAD = 0x595f07bc
+    /** @type {number} */
+    const KTON_STAKE_PAYLOAD = 0x47d54391
+    /** @type {string} */
+    const KTON_FEE_RES = "1.5"
+    /** @type {string} */
+    const KTON_STAKE_FEE = "1"
+    /** @type {string} */
+    const KTON_UNSTAKE_FEE = "1.05"
+
     // ELECTOR COMMON
 
     /** @type {string} */
@@ -532,6 +575,10 @@
         /** @type {string} */
         const hipoBadge = ` <div class="badge badge-blue">Hipo</div>`;
         /** @type {string} */
+        const ktonBadge = ` <div class="badge badge-blue">KTON</div>`;
+        /** @type {string} */
+        const ktonJettonBadge = ` <div class="badge badge-blue">KTON Jetton</div>`;
+        /** @type {string} */
         const electorBadge = isCreateScreen ? `` :  ` <div class="badge badge-blue">Elector</div>`; // do not fit in create mobile screen
 
         /**
@@ -540,25 +587,61 @@
          */
         const removeButton = (i) => isCreateScreen ? `<button class="create_whitelist-btn" onclick="removeWhitelist(${i})">-</button>` : ``;
 
+        // Group addresses by type for better organization
+        const groupedAddresses = [];
+        
+        // Helper function to get address type and priority for sorting
+        const getAddressType = (address) => {
+            if (address === senderAddressString) return { type: 'sender', priority: 0 };
+            if (address === STAKING_CONTRACT_ADDRESS) return { type: 'tonstakers', priority: 1 };
+            if (address === stakingJettonWalletAddress || address === createState?.stakingJettonWalletAddress) return { type: 'tonstakers', priority: 2 };
+            if (address === KTON_POOL_ADDRESS) return { type: 'kton', priority: 3 };
+            if (address === ktonJettonWalletAddress || address === createState?.ktonJettonWalletAddress) return { type: 'kton', priority: 4 };
+            if (address === HIPO_TREASURY_ADDRESS) return { type: 'hipo', priority: 5 };
+            if (address === hipoJettonWalletAddress || address === createState?.hipoJettonWalletAddress) return { type: 'hipo', priority: 6 };
+            if (address === ELECTOR_CONTRACT_ADDRESS) return { type: 'elector', priority: 7 };
+            return { type: 'other', priority: 8 };
+        };
+
+        // Sort addresses by type and priority
+        const sortedList = [...list].sort((a, b) => {
+            const typeA = getAddressType(a);
+            const typeB = getAddressType(b);
+            
+            // First sort by type priority
+            if (typeA.priority !== typeB.priority) {
+                return typeA.priority - typeB.priority;
+            }
+            
+            // Within same type, maintain original order
+            return list.indexOf(a) - list.indexOf(b);
+        });
+
         /** @type {string} */
         let s = '';
-        for (let i = 0; i < list.length; i++) {
+        for (let i = 0; i < sortedList.length; i++) {
             /** @type {string} */
-            const address = list[i];
+            const address = sortedList[i];
             const isSender = address === senderAddressString;
             const isTonstakersPool = address === STAKING_CONTRACT_ADDRESS;
             const isTonstakersJetton = address === stakingJettonWalletAddress || address === createState?.stakingJettonWalletAddress;
             const isHipoTreasury = address === HIPO_TREASURY_ADDRESS;
             const isHipoJetton = address === hipoJettonWalletAddress || address === createState?.hipoJettonWalletAddress;
+            const isKTONPool = address === KTON_POOL_ADDRESS;
+            const isKTONJetton = address === ktonJettonWalletAddress || address === createState?.ktonJettonWalletAddress;
             const isElector = address === ELECTOR_CONTRACT_ADDRESS;
-            const badge = isSender ? senderBadge : (isTonstakersPool || isTonstakersJetton ? tonstakersBadge : (isHipoTreasury || isHipoJetton ? hipoBadge : (isElector ? electorBadge : '')));
-            const title = isSender ? 'Sender address' : (isTonstakersPool ? 'Tonstakers Pool' : (isTonstakersJetton ? 'Tonstakers Jetton' : (isHipoTreasury ? 'Hipo Treasury' : (isHipoJetton ? 'Hipo Jetton Wallet' : (isElector ? 'Elector' : 'Address')))));
+            const badge = isSender ? senderBadge : (isTonstakersPool || isTonstakersJetton ? tonstakersBadge : (isKTONPool ? ktonBadge : (isKTONJetton ? ktonJettonBadge : (isHipoTreasury || isHipoJetton ? hipoBadge : (isElector ? electorBadge : '')))));
+            const title = isSender ? 'Sender address' : (isTonstakersPool ? 'Tonstakers Pool' : (isTonstakersJetton ? 'Tonstakers Jetton' : (isHipoTreasury ? 'Hipo Treasury' : (isHipoJetton ? 'Hipo Jetton Wallet' : ( isKTONPool ? 'KTON Pool' : (isKTONJetton ? 'KTON Jetton' : (isElector ? 'Elector' : 'Address')))))));
+            
+            // For create screen, we need to use original index for remove button
+            const originalIndex = isCreateScreen ? list.indexOf(address) : i;
+            
             s += `<div class="create_whitelist-row">
                 <div class="create_whitelist-num">${i + 1}.</div>
                 <a class="create_whitelist-address address" href="${scanLink(address)}" title="${title}" target="_blank">
                     ${formatAddress(address)}
                 </a>
-                ${badge + (isSender ? '' : removeButton(i))}
+                ${badge + (isSender ? '' : removeButton(originalIndex))}
             </div>`;
         }
         container.innerHTML = s;
@@ -587,6 +670,9 @@
 
     /** @type {string | null} */
     let hipoJettonWalletAddress = null;
+
+    /** @type {string | null} */
+    let ktonJettonWalletAddress = null;
 
     // NAVIGATE
 
@@ -667,12 +753,41 @@
     /**
      * @param address   {string}
      */
+    const getKTONJettonWalletAddress = async (address) => {
+        const KTON_JETTON_MINTER_ADDRESS_INDEX = 16;
+        try {
+            // TODO: tonweb does not support tvm.StackEntryList, so we hardcode the minter address here
+            //const ktonContractResponse = await tonweb.provider.call2(KTON_POOL_ADDRESS, 'get_pool_full_data');
+            const ktonJettonMinterAddress = KTON_JETTON_MINTER_ADDRESS; //ktonContractResponse[KTON_JETTON_MINTER_ADDRESS_INDEX]?.beginParse().loadAddress();
+            if (!ktonJettonMinterAddress) throw new Error("KTON Jetton minter address is not found.");
+
+            const queryAddress = new TonWeb.utils.Address(address);
+            const addressCell = new TonWeb.boc.Cell();
+            addressCell.bits.writeAddress(queryAddress);
+            const serializedQueryAddress = TonWeb.utils.bytesToBase64(await addressCell.toBoc(false));
+
+            const walletResponse = await tonweb.provider.call2(ktonJettonMinterAddress.toString(), 'get_wallet_address', [['tvm.Slice', serializedQueryAddress]]);
+            if (!walletResponse) throw new Error("KTON Jetton wallet is not found.");
+
+            const ktonJettonWalletAddress = walletResponse.beginParse().loadAddress()
+
+            return ktonJettonWalletAddress.toString(true, true, true, IS_TESTNET)
+
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    /**
+     * @param address   {string}
+     */
     const setAddress = (address) => {
         currentAddress = address;
         currentAddressIsWallet = false;
         vestingWallet = null;
         stakingJettonWalletAddress = null;
         hipoJettonWalletAddress = null;
+        ktonJettonWalletAddress = null;
 
         $('.address_header').innerText = 'Address';
         $('#address_info').innerText = '';
@@ -709,6 +824,12 @@
                 hipoJettonWalletAddress = await getHipoJettonWalletAddress(address);
             } catch (e) {
                 console.error("Error fetching hipoJetton wallet:", e);
+            }
+
+            try {
+                ktonJettonWalletAddress = await getKTONJettonWalletAddress(address);
+            } catch (e) {
+                console.error("Error fetching KTON Jetton wallet:", e);
             }
 
             if (!walletInfo) {
@@ -873,6 +994,35 @@
                         localStorage.setItem('format_' + (new TonWeb.utils.Address(hipoJettonWalletAddress).toString(false)), 'false');
                     }
 
+                    if (ktonJettonWalletAddress) {
+                        const unstakeKTONJettonBalanceEl = $('#ktonUnstakePopup_ktonJettonWalletBalance');
+                        const vestingKTONJettonBalanceEl = $('#vesting_ktonJettonBalance');
+                        const jettonAddressButton = $('#whitelist_useKTONJettonButton')
+
+                        if (jettonAddressButton) {
+                            jettonAddressButton.disabled = false;
+                        }
+
+                        try {
+                            const ktonJettonWallet = new TonWeb.token.jetton.JettonWallet(tonweb.provider, { address: ktonJettonWalletAddress });
+                            const ktonJettonWalletData = await ktonJettonWallet.getData();
+
+                            vestingData.ktonBalance = ktonJettonWalletData.balance;
+
+                            if (unstakeKTONJettonBalanceEl) {
+                                unstakeKTONJettonBalanceEl.innerHTML =
+                                    `Available: ${bold(formatAmount(vestingData.ktonBalance, KTON_TOKEN_NAME))}<br/>
+                                    Additionally, ${KTON_UNSTAKE_FEE} TON will be sent from the vesting wallet to settle fees`;
+                            }
+                        } catch (e) {
+                            // Can't get KTON Jetton wallet data
+                        }
+
+                        // force isWallet flag to false to render it correctly in whitelist
+                        localStorage.setItem('format_' + (new TonWeb.utils.Address(ktonJettonWalletAddress).toString(false)), 'false');
+                    }
+
+
                     for (const address of whitelist) {
                         const isWallet = await checkIsWallet(address.toString(false));
                         vestingData.whitelist.push(address.toString(true, true, !isWallet, IS_TESTNET));
@@ -1028,6 +1178,10 @@
         let hipoAvailableAmount = vestingWalletInfo.balance.sub(toNano(HIPO_FEE_RES));
         if (hipoAvailableAmount.lt(new BN(0))) hipoAvailableAmount = new BN(0);
 
+        /** @type {BN} */
+        let ktonAvailableAmount = vestingWalletInfo.balance.sub(toNano(KTON_FEE_RES));
+        if (ktonAvailableAmount.lt(new BN(0))) ktonAvailableAmount = new BN(0);
+
         /** @type {string} */
         const unlockString = vestingWalletInfo.unlockPeriod === vestingWalletInfo.vestingTotalDuration ? '-' :
             `Every ${formatPeriod(vestingWalletInfo.unlockPeriod)} ${vestingWalletInfo.cliffDuration > 0 ? 'after cliff period' : ''}`;
@@ -1050,6 +1204,9 @@
         /** @type {boolean} */
         const isHipoTreasuryWhitelisted = vestingWalletInfo.whitelist.includes(HIPO_TREASURY_ADDRESS);
 
+        /** @type {boolean} */
+        const isKTONPoolWhitelisted = vestingWalletInfo.whitelist.includes(KTON_POOL_ADDRESS);
+
         const div = document.createElement('div');
         div.innerHTML =
             `
@@ -1071,6 +1228,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         ${formatAmount(vestingWalletInfo.balance)}
         ${vestingWalletInfo.jettonBalance ? `<div id="vesting_stakingJettonBalance">${formatAmount(vestingWalletInfo.jettonBalance, STAKE_TOKEN_NAME)}</div>` : ''}
         ${vestingWalletInfo.hipoBalance ? `<div id="vesting_hipoJettonBalance">${formatAmount(vestingWalletInfo.hipoBalance, HIPO_TOKEN_NAME)}</div>` : ''}
+        ${vestingWalletInfo.ktonBalance ? `<div id="vesting_ktonJettonBalance">${formatAmount(vestingWalletInfo.ktonBalance, KTON_TOKEN_NAME)}</div>` : ''}
     </div>
 
     <div class="vesting_key">
@@ -1145,7 +1303,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
 
     ${isOwner ? `<button id="vesting_sendBtn${index}" class="btn">Send from Vesting</button>` : ``}
     ${isSender ? `<button id="vesting_addWhitelistBtn${index}" class="btn">Add whitelist</button>` : ``}
-    ${isOwner && (isStakingContractWhitelisted || isHipoTreasuryWhitelisted) ?
+    ${isOwner && (isStakingContractWhitelisted || isHipoTreasuryWhitelisted || isKTONPoolWhitelisted) ?
         `<div class="vesting_3rd">
             <div class="vesting_3rd-title">Use with 3rd party</div>
             ${isStakingContractWhitelisted ? `
@@ -1155,6 +1313,10 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
             ${isHipoTreasuryWhitelisted ? `
                 <button id="vesting_hipoStakeBtn${index}" class="btn">Stake with Hipo</button>
                 <button id="vesting_hipoUnstakeBtn${index}" class="btn vesting_unstakeBtn" ${hipoJettonWalletAddress ? '' : 'disabled'}>Unstake with Hipo</button>
+            ` : ''}
+            ${isKTONPoolWhitelisted ? `
+                <button id="vesting_ktonStakeBtn${index}" class="btn">Stake with KTON</button>
+                <button id="vesting_ktonUnstakeBtn${index}" class="btn vesting_unstakeBtn" ${ktonJettonWalletAddress && vestingWalletInfo.whitelist.includes(ktonJettonWalletAddress) ? '' : 'disabled'}>Unstake with KTON</button>
             ` : ''}
         </div>` : ``}
 </div>`
@@ -1200,6 +1362,18 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         div.querySelector('#vesting_hipoUnstakeBtn' + index)?.addEventListener('click', () => {
             $('#hipoUnstakePopup_amountInput').value = '';
             showPopup('hipoUnstakePopup');
+        });
+
+        $('#ktonStakePopup_availableToStake').innerHTML = `Available: ${bold(formatAmount(ktonAvailableAmount))}<br/>${KTON_FEE_RES} TON reserved for fees`;
+
+        div.querySelector('#vesting_ktonStakeBtn' + index)?.addEventListener('click', () => {
+            $('#ktonStakePopup_amountInput').value = '';
+            showPopup('ktonStakePopup');
+        });
+
+        div.querySelector('#vesting_ktonUnstakeBtn' + index)?.addEventListener('click', () => {
+            $('#ktonUnstakePopup_amountInput').value = '';
+            showPopup('ktonUnstakePopup');
         });
 
         return div;
@@ -1335,6 +1509,73 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         const payload = TonWeb.boc.Cell.oneFromBoc(await prepareHipoPayload(HIPO_UNSTAKE_PAYLOAD, amount));
 
         sendFromVesting(toAddress, toNano(HIPO_UNSTAKE_FEE), payload);
+    });
+
+    const prepareKTONPayload = async (payloadType, inputAmount = null, toAddress = null, waitTillRoundEnd = false, fillOrKill = false) => {
+        const payload = new TonWeb.boc.Cell();
+        payload.bits.writeUint(payloadType, 32);
+
+        switch (payloadType) {
+            case KTON_STAKE_PAYLOAD:
+                payload.bits.writeUint(1, 64);
+                break;
+            case KTON_UNSTAKE_PAYLOAD:
+                payload.bits.writeUint(0, 64);
+                payload.bits.writeCoins(inputAmount.toNumber());
+
+                const queryAddress = new TonWeb.utils.Address(currentAddress);
+                payload.bits.writeAddress(queryAddress);
+
+                const refCell = new TonWeb.boc.Cell();
+                refCell.bits.writeUint(Number(waitTillRoundEnd), 1);
+                refCell.bits.writeUint(Number(fillOrKill), 1);
+
+                payload.bits.writeBit(1);
+                payload.refs.push(refCell);
+
+                break;
+        }
+
+        return payload.toBoc(false);
+    }
+
+    $('#ktonStakePopup_sendButton').addEventListener('click', async () => {
+        /** @type {BN} */
+        let amount;
+        try {
+            const amountString = $('#ktonStakePopup_amountInput').value;
+            if (!amountString) throw new Error();
+            amount = toNano(amountString);
+            if (!amount.gt(new BN(0))) throw new Error();
+            amount = amount.add(toNano(KTON_STAKE_FEE));
+        } catch (e) {
+            alert('Not valid amount');
+            return;
+        }
+
+        const toAddress = KTON_POOL_ADDRESS
+        const payload = TonWeb.boc.Cell.oneFromBoc(await prepareKTONPayload(KTON_STAKE_PAYLOAD));
+
+        sendFromVesting(toAddress, amount, payload);
+    });
+
+    $('#ktonUnstakePopup_sendButton').addEventListener('click', async () => {
+        /** @type {BN} */
+        let amount;
+        try {
+            const amountString = $('#ktonUnstakePopup_amountInput').value;
+            if (!amountString) throw new Error();
+            amount = toNano(amountString);
+            if (!amount.gt(new BN(0))) throw new Error();
+        } catch (e) {
+            alert('Not valid amount');
+            return;
+        }
+
+        const toAddress = ktonJettonWalletAddress;
+        const payload = TonWeb.boc.Cell.oneFromBoc(await prepareKTONPayload(KTON_UNSTAKE_PAYLOAD, amount));
+
+        sendFromVesting(toAddress, toNano(KTON_UNSTAKE_FEE), payload);
     });
 
     // SEND
@@ -1669,15 +1910,19 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
             const stakingJettonWalletAddressSting = stakingJettonWalletAddress.toString(true, true, true, IS_TESTNET);
             const hipoJettonWalletAddress = await getHipoJettonWalletAddress(vestingWalletAddress.toString(true, true, true, IS_TESTNET));
             const hipoJettonWalletAddressString = hipoJettonWalletAddress.toString(true, true, true, IS_TESTNET);
+            const ktonJettonWalletAddress = await getKTONJettonWalletAddress(vestingWalletAddress.toString(true, true, true, IS_TESTNET));
+            const ktonJettonWalletAddressString = ktonJettonWalletAddress.toString(true, true, true, IS_TESTNET);
 
-            if (createState.whitelistAddresses.includes(createState.stakingJettonWalletAddress) || createState.whitelistAddresses.includes(createState.hipoJettonWalletAddress)) {
-                createState.whitelistAddresses = createState.whitelistAddresses.map(address => address === createState.stakingJettonWalletAddress ? stakingJettonWalletAddressSting : (address === createState.hipoJettonWalletAddress ? hipoJettonWalletAddressString : address));
+            if (createState.whitelistAddresses.includes(createState.stakingJettonWalletAddress) || createState.whitelistAddresses.includes(createState.hipoJettonWalletAddress) || createState.whitelistAddresses.includes(createState.ktonJettonWalletAddress)) {
+                createState.whitelistAddresses = createState.whitelistAddresses.map(address => address === createState.stakingJettonWalletAddress ? stakingJettonWalletAddressSting : (address === createState.hipoJettonWalletAddress ? hipoJettonWalletAddressString : (address === createState.ktonJettonWalletAddress ? ktonJettonWalletAddressString : address)));
                 createState.stakingJettonWalletAddress = stakingJettonWalletAddressSting;
                 createState.hipoJettonWalletAddress = hipoJettonWalletAddressString;
+                createState.ktonJettonWalletAddress = ktonJettonWalletAddressString;
                 renderCreateWhitelist();
             } else {
                 createState.stakingJettonWalletAddress = stakingJettonWalletAddressSting;
                 createState.hipoJettonWalletAddress = hipoJettonWalletAddressString;
+                createState.ktonJettonWalletAddress = ktonJettonWalletAddressString;
             }
         }
     }
@@ -1748,6 +1993,8 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         $('#whitelist_useTonstakersJettonButton').style.display = isCreate ? 'none' : 'block';
         $('#whitelist_useHipoTreasuryButton').style.display = isCreate ? 'none' : 'block';
         $('#whitelist_useHipoJettonButton').style.display = isCreate ? 'none' : 'block';
+        $('#whitelist_useKTONPoolButton').style.display = isCreate ? 'none' : 'block';
+        $('#whitelist_useKTONJettonButton').style.display = isCreate ? 'none' : 'block';
         addressForCheck = null;
         $('#whitelist_addressInput').value = '';
         $('#whitelist_info').innerText = '';
@@ -1816,6 +2063,8 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
     $('#unstakePopup').addEventListener('click', e => e.stopImmediatePropagation());
     $('#hipoStakePopup').addEventListener('click', e => e.stopImmediatePropagation());
     $('#hipoUnstakePopup').addEventListener('click', e => e.stopImmediatePropagation());
+    $('#ktonStakePopup').addEventListener('click', e => e.stopImmediatePropagation());
+    $('#ktonUnstakePopup').addEventListener('click', e => e.stopImmediatePropagation());
 
     /**
      * @param a {string}
@@ -1843,6 +2092,16 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
 
     $('#whitelist_useHipoJettonButton').addEventListener('click', async() => {
         $('#whitelist_addressInput').value = createState?.hipoJettonWalletAddress || hipoJettonWalletAddress;
+        onWhitelistAddressInput();
+    })
+
+    $('#whitelist_useKTONPoolButton').addEventListener('click', async () => {
+        $('#whitelist_addressInput').value = KTON_POOL_ADDRESS;
+        onWhitelistAddressInput();
+    })
+
+    $('#whitelist_useKTONJettonButton').addEventListener('click', async() => {
+        $('#whitelist_addressInput').value = createState?.ktonJettonWalletAddress || ktonJettonWalletAddress;
         onWhitelistAddressInput();
     })
 
