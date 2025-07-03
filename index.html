@@ -577,6 +577,8 @@
         /** @type {string} */
         const ktonBadge = ` <div class="badge badge-blue">KTON</div>`;
         /** @type {string} */
+        const ktonJettonBadge = ` <div class="badge badge-blue">KTON Jetton</div>`;
+        /** @type {string} */
         const electorBadge = isCreateScreen ? `` :  ` <div class="badge badge-blue">Elector</div>`; // do not fit in create mobile screen
 
         /**
@@ -628,7 +630,7 @@
             const isKTONPool = address === KTON_POOL_ADDRESS;
             const isKTONJetton = address === ktonJettonWalletAddress || address === createState?.ktonJettonWalletAddress;
             const isElector = address === ELECTOR_CONTRACT_ADDRESS;
-            const badge = isSender ? senderBadge : (isTonstakersPool || isTonstakersJetton ? tonstakersBadge : (isKTONPool || isKTONJetton ? ktonBadge : (isHipoTreasury || isHipoJetton ? hipoBadge : (isElector ? electorBadge : ''))));
+            const badge = isSender ? senderBadge : (isTonstakersPool || isTonstakersJetton ? tonstakersBadge : (isKTONPool ? ktonBadge : (isKTONJetton ? ktonJettonBadge : (isHipoTreasury || isHipoJetton ? hipoBadge : (isElector ? electorBadge : '')))));
             const title = isSender ? 'Sender address' : (isTonstakersPool ? 'Tonstakers Pool' : (isTonstakersJetton ? 'Tonstakers Jetton' : (isHipoTreasury ? 'Hipo Treasury' : (isHipoJetton ? 'Hipo Jetton Wallet' : ( isKTONPool ? 'KTON Pool' : (isKTONJetton ? 'KTON Jetton' : (isElector ? 'Elector' : 'Address')))))));
             
             // For create screen, we need to use original index for remove button
