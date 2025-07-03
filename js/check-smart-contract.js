@@ -149,26 +149,27 @@ const checkSmartContract = async (tonweb, address) => {
             }
         }
 
-        if (address.toString(true, true, true, IS_TESTNET) === KTON_POOL_ADDRESS) {
+                // Check for predefined KTON addresses
+        const ktonPoolMainnet = 'EQDsW2P6nuP1zopKoNiCYj2xhqDan0cBuULQ8MH4o7dBt_7a';
+        const ktonPoolTestnet = 'kQD2y9eUotYw7VprrD0UJvAigDVXwgCCLWAl-DjaamCHniVr';
+        const addressFormatted = address.toString(true, true, true);
+        
+        if (addressFormatted === ktonPoolMainnet || addressFormatted === ktonPoolTestnet) {
             return {
                 status: SUCCESS,
                 text: 'KTON Premium'
             }
-        } else if (address.toString(true, true, true, IS_TESTNET) === ktonJettonWalletAddress) {
-            return {
-                status: SUCCESS,
-                text: 'KTON Jetton Wallet'
-            }
-        } else if (address.toString(true, true, true, IS_TESTNET) === HIPO_TREASURY_ADDRESS) {
+        }
+        
+        // Check for predefined Hipo addresses
+        const hipoTreasuryMainnet = 'EQCLyZHP4Xe8fpchQz76O-_RmUhaVc_9BAoGyJrwJrcbz2eZ';
+        const hipoTreasuryTestnet = 'kQAlDMBKCT8WJ4nwdwNRp0lvKMP4vUnHYspFPhEnyR36cg44';
+        
+        if (addressFormatted === hipoTreasuryMainnet || addressFormatted === hipoTreasuryTestnet) {
             return {
                 status: SUCCESS,
                 text: 'Hipo Treasury'
-            }
-        } else if (address.toString(true, true, true, IS_TESTNET) === hipoJettonWalletAddress) {
-            return {
-                status: SUCCESS,
-                text: 'Hipo Jetton Wallet'
-            }
+        }
         } else if (await codeEquals(info.code, NOMINATOR_POOL_CODE_HASH)) {
 
             return checkPool(tonweb, addressString);

@@ -1518,7 +1518,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         }
 
         const toAddress = KTON_POOL_ADDRESS
-        const payload = TonWeb.boc.Cell.oneFromBoc(await prepareTonstakersPayload(KTON_STAKE_PAYLOAD));
+        const payload = TonWeb.boc.Cell.oneFromBoc(await prepareKTONPayload(KTON_STAKE_PAYLOAD));
 
         sendFromVesting(toAddress, amount, payload);
     });
@@ -1537,7 +1537,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         }
 
         const toAddress = ktonJettonWalletAddress;
-        const payload = TonWeb.boc.Cell.oneFromBoc(await prepareTonstakersPayload(KTON_UNSTAKE_PAYLOAD, amount));
+        const payload = TonWeb.boc.Cell.oneFromBoc(await prepareKTONPayload(KTON_UNSTAKE_PAYLOAD, amount));
 
         sendFromVesting(toAddress, toNano(KTON_UNSTAKE_FEE), payload);
     });
@@ -1877,8 +1877,8 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
             const ktonJettonWalletAddress = await getKTONJettonWalletAddress(vestingWalletAddress.toString(true, true, true, IS_TESTNET));
             const ktonJettonWalletAddressString = ktonJettonWalletAddress.toString(true, true, true, IS_TESTNET);
 
-            if (createState.whitelistAddresses.includes(createState.stakingJettonWalletAddress) || createState.whitelistAddresses.includes(createState.hipoJettonWalletAddress) || createState.whitelistAddresses.includes(ktonJettonWalletAddressString)) {
-                createState.whitelistAddresses = createState.whitelistAddresses.map(address => address === createState.stakingJettonWalletAddress ? stakingJettonWalletAddressSting : (address === createState.hipoJettonWalletAddress ? hipoJettonWalletAddressString : (address=== createState.ktonJettonWalletAddress ? ktonJettonWalletAddressString : address)));
+            if (createState.whitelistAddresses.includes(createState.stakingJettonWalletAddress) || createState.whitelistAddresses.includes(createState.hipoJettonWalletAddress) || createState.whitelistAddresses.includes(createState.ktonJettonWalletAddress)) {
+                createState.whitelistAddresses = createState.whitelistAddresses.map(address => address === createState.stakingJettonWalletAddress ? stakingJettonWalletAddressSting : (address === createState.hipoJettonWalletAddress ? hipoJettonWalletAddressString : (address === createState.ktonJettonWalletAddress ? ktonJettonWalletAddressString : address)));
                 createState.stakingJettonWalletAddress = stakingJettonWalletAddressSting;
                 createState.hipoJettonWalletAddress = hipoJettonWalletAddressString;
                 createState.ktonJettonWalletAddress = ktonJettonWalletAddressString;
