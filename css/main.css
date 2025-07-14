@@ -591,14 +591,14 @@ input::-webkit-date-and-time-value {
     justify-content: center;
     flex-direction: column;
     width: 300px;
-    position: absolute;
+    position: fixed;
     left: 50%;
     top: 50%;
-    margin-left: -150px;
-    margin-top: -150px;
+    transform: translate(-50%, -50%);
     background: white;
     border-radius: 24px;
     padding: 20px;
+    margin: 0;
 }
 
 #whitelist_label {
@@ -641,6 +641,8 @@ input::-webkit-date-and-time-value {
 #whitelist_useTonstakersJettonButton,
 #whitelist_useHipoTreasuryButton,
 #whitelist_useHipoJettonButton,
+#whitelist_useKTONPoolButton,
+#whitelist_useKTONJettonButton,
 #whitelist_useElectorButton {
     margin-top: 10px;
     width: 100%;
