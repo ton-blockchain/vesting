@@ -2077,36 +2077,57 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
 
     $('#whitelist_useTonstakersPoolButton').addEventListener('click', async () => {
         $('#whitelist_addressInput').value = STAKING_CONTRACT_ADDRESS;
+        if(vestingWallet && ((await vestingWallet.getAddress()).wc < 0)) {
+            $('#whitelist_addressInput').value = "Liquid staking can not be used for masterchain vesting"
+        }
         onWhitelistAddressInput();
     });
 
     $('#whitelist_useTonstakersJettonButton').addEventListener('click', async () => {
         $('#whitelist_addressInput').value = createState?.stakingJettonWalletAddress || stakingJettonWalletAddress;
+        if(vestingWallet && ((await vestingWallet.getAddress()).wc < 0)) {
+            $('#whitelist_addressInput').value = "Liquid staking can not be used for masterchain vesting"
+        }
         onWhitelistAddressInput();
     });
 
     $('#whitelist_useHipoTreasuryButton').addEventListener('click', async () => {
         $('#whitelist_addressInput').value = HIPO_TREASURY_ADDRESS;
+        if(vestingWallet && ((await vestingWallet.getAddress()).wc < 0)) {
+            $('#whitelist_addressInput').value = "Liquid staking can not be used for masterchain vesting"
+        }
         onWhitelistAddressInput();
     })
 
     $('#whitelist_useHipoJettonButton').addEventListener('click', async() => {
         $('#whitelist_addressInput').value = createState?.hipoJettonWalletAddress || hipoJettonWalletAddress;
+        if(vestingWallet && ((await vestingWallet.getAddress()).wc < 0)) {
+            $('#whitelist_addressInput').value = "Liquid staking can not be used for masterchain vesting"
+        }
         onWhitelistAddressInput();
     })
 
     $('#whitelist_useKTONPoolButton').addEventListener('click', async () => {
         $('#whitelist_addressInput').value = KTON_POOL_ADDRESS;
+        if(vestingWallet && ((await vestingWallet.getAddress()).wc < 0)) {
+            $('#whitelist_addressInput').value = "Liquid staking can not be used for masterchain vesting"
+        }
         onWhitelistAddressInput();
     })
 
     $('#whitelist_useKTONJettonButton').addEventListener('click', async() => {
         $('#whitelist_addressInput').value = createState?.ktonJettonWalletAddress || ktonJettonWalletAddress;
+        if(vestingWallet && ((await vestingWallet.getAddress()).wc < 0)) {
+            $('#whitelist_addressInput').value = "Liquid staking can not be used for masterchain vesting"
+        }
         onWhitelistAddressInput();
     })
 
     $('#whitelist_useElectorButton').addEventListener('click', async () => {
         $('#whitelist_addressInput').value = ELECTOR_CONTRACT_ADDRESS;
+        if(vestingWallet && ((await vestingWallet.getAddress()).wc > -1)) {
+            $('#whitelist_addressInput').value = "Direct staking can not be used from basechain vesting"
+        }
         onWhitelistAddressInput();
     });
 
