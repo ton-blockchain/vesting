@@ -166,6 +166,10 @@
         <button id="whitelist_useHipoJettonButton" class="btn">Use Hipo Jetton</button>
         <button id="whitelist_useKTONPoolButton" class="btn">Use KTON Premium</button>
         <button id="whitelist_useKTONJettonButton" class="btn">Use KTON Jetton</button>
+        <button id="whitelist_useBemoV2TreasuryButton" class="btn">Use Bemo v2 Treasury</button>
+        <button id="whitelist_useBemoV2JettonButton" class="btn">Use Bemo v2 Jetton</button>
+        <button id="whitelist_useBemoV1TreasuryButton" class="btn">Use Bemo v1 Treasury</button>
+        <button id="whitelist_useBemoV1JettonButton" class="btn">Use Bemo v1 Jetton</button>
         <button id="whitelist_useElectorButton" class="btn">Use Elector</button>
     </div>
 
@@ -249,6 +253,50 @@
         <div id="ktonUnstakePopup_ktonJettonWalletBalance" class="stakePopup_note"></div>
         <button id="ktonUnstakePopup_sendButton" class="btn sendPopup_button">Unstake</button>
     </div>
+
+    <!-- Bemo v2 Stake Popup -->
+
+    <div id="bemoV2StakePopup" class="sendPopup">
+        <div id="bemoV2StakePopup_label" class="stakePopup_label">
+            Stake with Bemo v2:
+        </div>
+        <input id="bemoV2StakePopup_amountInput" placeholder="Enter amount" class="sendPopup_input" type="number">
+        <div id="bemoV2StakePopup_availableToStake" class="stakePopup_note"></div>
+        <button id="bemoV2StakePopup_sendButton" class="btn sendPopup_button">Stake</button>
+    </div>
+
+    <!-- Bemo v2 Unstake Popup -->
+
+    <div id="bemoV2UnstakePopup" class="sendPopup">
+        <div id="bemoV2UnstakePopup_label" class="stakePopup_label">
+            Unstake with Bemo v2:
+        </div>
+        <input id="bemoV2UnstakePopup_amountInput" placeholder="Enter amount" class="sendPopup_input" type="number">
+        <div id="bemoV2UnstakePopup_bemoV2JettonWalletBalance" class="stakePopup_note"></div>
+        <button id="bemoV2UnstakePopup_sendButton" class="btn sendPopup_button">Unstake</button>
+    </div>
+
+    <!-- Bemo v1 Stake Popup -->
+
+    <div id="bemoV1StakePopup" class="sendPopup">
+        <div id="bemoV1StakePopup_label" class="stakePopup_label">
+            Stake with Bemo v1:
+        </div>
+        <input id="bemoV1StakePopup_amountInput" placeholder="Enter amount" class="sendPopup_input" type="number">
+        <div id="bemoV1StakePopup_availableToStake" class="stakePopup_note"></div>
+        <button id="bemoV1StakePopup_sendButton" class="btn sendPopup_button">Stake</button>
+    </div>
+
+    <!-- Bemo v1 Unstake Popup -->
+
+    <div id="bemoV1UnstakePopup" class="sendPopup">
+        <div id="bemoV1UnstakePopup_label" class="stakePopup_label">
+            Unstake with Bemo v1:
+        </div>
+        <input id="bemoV1UnstakePopup_amountInput" placeholder="Enter amount" class="sendPopup_input" type="number">
+        <div id="bemoV1UnstakePopup_bemoV1JettonWalletBalance" class="stakePopup_note"></div>
+        <button id="bemoV1UnstakePopup_sendButton" class="btn sendPopup_button">Unstake</button>
+    </div>
 </div>
 
 <script>
@@ -312,10 +360,10 @@
     }
 
     /**
-     * @param name  {'addWhitelistPopup' | 'sendPopup' | 'stakePopup' | 'unstakePopup' | 'hipoStakePopup' | 'hipoUnstakePopup' | 'ktonStakePopup' | 'ktonUnstakePopup'}
+     * @param name  {'addWhitelistPopup' | 'sendPopup' | 'stakePopup' | 'unstakePopup' | 'hipoStakePopup' | 'hipoUnstakePopup' | 'ktonStakePopup' | 'ktonUnstakePopup' | 'bemoV2StakePopup' | 'bemoV2UnstakePopup' | 'bemoV1StakePopup' | 'bemoV1UnstakePopup'}
      */
     const showPopup = (name) => {
-        const popups = ['addWhitelistPopup', 'sendPopup', 'stakePopup', 'unstakePopup', 'hipoStakePopup', 'hipoUnstakePopup' , 'ktonStakePopup', 'ktonUnstakePopup'];
+        const popups = ['addWhitelistPopup', 'sendPopup', 'stakePopup', 'unstakePopup', 'hipoStakePopup', 'hipoUnstakePopup' , 'ktonStakePopup', 'ktonUnstakePopup', 'bemoV2StakePopup', 'bemoV2UnstakePopup', 'bemoV1StakePopup', 'bemoV1UnstakePopup'];
         toggle($('#modal'), true);
 
         for (const popup of popups) {
@@ -461,6 +509,30 @@
     /** @type {string} */
     const KTON_UNSTAKE_FEE = "1.05"
 
+    // BEMO V2 COMMON
+
+    /** @type {string} */
+    const BEMO_V2_TREASURY_ADDRESS = IS_TESTNET ? 'kQA8BUb8WZ18ZKXikEnGzor2dcd_DW8n-kSbclqUAo0N7iS9' : 'EQCSxGZPHqa3TtnODgMan8CEM0jf6HpY-uon_NMeFgjKqkEY';
+    /** @type {string} */
+    const BEMO_V2_TOKEN_NAME = 'bmTON';
+    /** @type {number} */
+    const BEMO_UNSTAKE_PAYLOAD = 0x595f07bc;
+    /** @type {number} */
+    const BEMO_STAKE_PAYLOAD = 0;
+    /** @type {string} */
+    const BEMO_FEE_RES = "1"
+    /** @type {string} */
+    const BEMO_STAKE_FEE = "0.05"
+    /** @type {string} */
+    const BEMO_UNSTAKE_FEE = "0.5"
+
+    // BEMO V1 COMMON
+
+    /** @type {string} */
+    const BEMO_V1_TREASURY_ADDRESS = IS_TESTNET ? 'kQBmnSQ8Bd2ZfeTlgbkPhCPlol8BBeGFtS2tGVtvPwV3wBok' : 'EQDNhy-nxYFgUqzfUzImBEP67JqsyMIcyk2S5_RwNNEYku0k';
+    /** @type {string} */
+    const BEMO_V1_TOKEN_NAME = 'stTON';
+
     // ELECTOR COMMON
 
     /** @type {string} */
@@ -579,6 +651,15 @@
         /** @type {string} */
         const ktonJettonBadge = ` <div class="badge badge-blue">KTON Jetton</div>`;
         /** @type {string} */
+        const bemoV2Badge = ` <div class="badge badge-blue">Bemo v2</div>`;
+        /** @type {string} */
+        const bemoV2JettonBadge = ` <div class="badge badge-blue">Bemo v2 Jetton</div>`;
+        /** @type {string} */
+        const bemoV1Badge = ` <div class="badge badge-blue">Bemo v1</div>`;
+        /** @type {string} */
+        const bemoV1JettonBadge = ` <div class="badge badge-blue">Bemo v1 Jetton</div>`;
+        /** @type {string} */
+
         const electorBadge = isCreateScreen ? `` :  ` <div class="badge badge-blue">Elector</div>`; // do not fit in create mobile screen
 
         /**
@@ -629,9 +710,24 @@
             const isHipoJetton = address === hipoJettonWalletAddress || address === createState?.hipoJettonWalletAddress;
             const isKTONPool = address === KTON_POOL_ADDRESS;
             const isKTONJetton = address === ktonJettonWalletAddress || address === createState?.ktonJettonWalletAddress;
+            const isBemoV2Treasury = address === BEMO_V2_TREASURY_ADDRESS;
+            const isBemoV2Jetton = address === bemoV2JettonWalletAddress || address === createState?.bemoV2JettonWalletAddress;
+            const isBemoV1Treasury = address === BEMO_V1_TREASURY_ADDRESS;
+            const isBemoV1Jetton = address === bemoV1JettonWalletAddress || address === createState?.bemoV1JettonWalletAddress;
             const isElector = address === ELECTOR_CONTRACT_ADDRESS;
-            const badge = isSender ? senderBadge : (isTonstakersPool || isTonstakersJetton ? tonstakersBadge : (isKTONPool ? ktonBadge : (isKTONJetton ? ktonJettonBadge : (isHipoTreasury || isHipoJetton ? hipoBadge : (isElector ? electorBadge : '')))));
-            const title = isSender ? 'Sender address' : (isTonstakersPool ? 'Tonstakers Pool' : (isTonstakersJetton ? 'Tonstakers Jetton' : (isHipoTreasury ? 'Hipo Treasury' : (isHipoJetton ? 'Hipo Jetton Wallet' : ( isKTONPool ? 'KTON Pool' : (isKTONJetton ? 'KTON Jetton' : (isElector ? 'Elector' : 'Address')))))));
+            const badge = isSender ? senderBadge : (isTonstakersPool || isTonstakersJetton ? tonstakersBadge : 
+                                                    (isKTONPool ? ktonBadge : (isKTONJetton ? ktonJettonBadge : 
+                                                    (isHipoTreasury || isHipoJetton ? hipoBadge : 
+                                                    (isBemoV2Treasury || isBemoV2Jetton ? bemoV2Badge : 
+                                                    (isBemoV1Treasury || isBemoV1Jetton ? bemoV1Badge : 
+                                                    (isElector ? electorBadge : '')))))));
+            
+            const title = isSender ? 'Sender address' : (isTonstakersPool ? 'Tonstakers Pool' : (isTonstakersJetton ? 'Tonstakers Jetton' : 
+                                                        (isHipoTreasury ? 'Hipo Treasury' : (isHipoJetton ? 'Hipo Jetton Wallet' : 
+                                                        (isKTONPool ? 'KTON Pool' : (isKTONJetton ? 'KTON Jetton' : 
+                                                        (isBemoV2Treasury ? 'Bemo v2 Treasury' : (isBemoV2Jetton ? 'Bemo v2 Jetton' : 
+                                                        (isBemoV1Treasury ? 'Bemo v1 Treasury' : (isBemoV1Jetton ? 'Bemo v1 Jetton' :
+                                                        (isElector ? 'Elector' : 'Address')))))))))));
             
             // For create screen, we need to use original index for remove button
             const originalIndex = isCreateScreen ? list.indexOf(address) : i;
@@ -673,6 +769,12 @@
 
     /** @type {string | null} */
     let ktonJettonWalletAddress = null;
+
+    /** @type {string | null} */
+    let bemoV2JettonWalletAddress = null;
+
+    /** @type {string | null} */
+    let bemoV1JettonWalletAddress = null;
 
     // NAVIGATE
 
@@ -780,6 +882,39 @@
 
     /**
      * @param address   {string}
+     * @param version   {string}
+     */
+    const getBemoJettonWalletAddress = async (address, version = 'v2') => {
+        try {
+            const TREASURY_BY_VERSION = {
+                v1: BEMO_V1_TREASURY_ADDRESS,
+                v2: BEMO_V2_TREASURY_ADDRESS,
+            };
+
+            const bemoJettonMinterAddress = TREASURY_BY_VERSION[version];
+            if (!bemoJettonMinterAddress) {
+                throw new Error(`Unsupported Bemo version: ${version}. Use 'v1' or 'v2'.`);
+            }
+
+            const queryAddress = new TonWeb.utils.Address(address);
+            const addressCell = new TonWeb.boc.Cell();
+            addressCell.bits.writeAddress(queryAddress);
+            const serializedQueryAddress = TonWeb.utils.bytesToBase64(await addressCell.toBoc(false));
+
+            const walletResponse = await tonweb.provider.call2(bemoJettonMinterAddress.toString(), 'get_wallet_address', [['tvm.Slice', serializedQueryAddress]]);
+            if (!walletResponse) {
+                throw new Error(`Bemo ${version.toUpperCase()} Jetton wallet is not found.`);
+            }
+
+            const jettonWalletAddress = walletResponse.beginParse().loadAddress();
+            return jettonWalletAddress.toString(true, true, true, IS_TESTNET);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    /**
+     * @param address   {string}
      */
     const setAddress = (address) => {
         currentAddress = address;
@@ -788,6 +923,8 @@
         stakingJettonWalletAddress = null;
         hipoJettonWalletAddress = null;
         ktonJettonWalletAddress = null;
+        bemoV2JettonWalletAddress = null;
+        bemoV1JettonWalletAddress = null;
 
         $('.address_header').innerText = 'Address';
         $('#address_info').innerText = '';
@@ -830,6 +967,18 @@
                 ktonJettonWalletAddress = await getKTONJettonWalletAddress(address);
             } catch (e) {
                 console.error("Error fetching KTON Jetton wallet:", e);
+            }
+
+            try {
+                bemoV2JettonWalletAddress = await getBemoJettonWalletAddress(address, 'v2');
+            } catch (e) {
+                console.error("Error fetching Bemo v2 Jetton wallet:", e);
+            }
+
+            try {
+                bemoV1JettonWalletAddress = await getBemoJettonWalletAddress(address, 'v1');
+            } catch (e) {
+                console.error("Error fetching Bemo v1 Jetton wallet:", e);
             }
 
             if (!walletInfo) {
@@ -1022,6 +1171,61 @@
                         localStorage.setItem('format_' + (new TonWeb.utils.Address(ktonJettonWalletAddress).toString(false)), 'false');
                     }
 
+                    if (bemoV2JettonWalletAddress) {
+                        const unstakeBemoJettonBalanceEl = $('#bemoV2UnstakePopup_bemoV2JettonWalletBalance');
+                        const vestingBemoJettonBalanceEl = $('#vesting_bemoV2JettonBalance');
+                        const jettonAddressButton = $('#whitelist_useBemoV2JettonButton')
+
+                        if (jettonAddressButton) {
+                            jettonAddressButton.disabled = false;
+                        }
+
+                        try {
+                            const bemoJettonWallet = new TonWeb.token.jetton.JettonWallet(tonweb.provider, { address: bemoV2JettonWalletAddress });
+                            const bemoJettonWalletData = await bemoJettonWallet.getData();
+
+                            vestingData.bemoV2Balance = bemoJettonWalletData.balance;
+
+                            if (unstakeBemoJettonBalanceEl) {
+                                unstakeBemoJettonBalanceEl.innerHTML =
+                                    `Available: ${bold(formatAmount(vestingData.bemoV2Balance, BEMO_V2_TOKEN_NAME))}<br/>
+                                    Additionally, ${BEMO_UNSTAKE_FEE} TON will be sent from the vesting wallet to settle fees`;
+                            }
+                        } catch (e) {
+                            // Can't get Bemo v2 Jetton wallet data
+                        }
+
+                        // force isWallet flag to false to render it correctly in whitelist
+                        localStorage.setItem('format_' + (new TonWeb.utils.Address(bemoV2JettonWalletAddress).toString(false)), 'false');
+                    }
+
+                    if (bemoV1JettonWalletAddress) {
+                        const unstakeBemoJettonBalanceEl = $('#bemoV1UnstakePopup_bemoV1JettonWalletBalance');
+                        const vestingBemoJettonBalanceEl = $('#vesting_bemoV1JettonBalance');
+                        const jettonAddressButton = $('#whitelist_useBemoV1JettonButton')
+
+                        if (jettonAddressButton) {
+                            jettonAddressButton.disabled = false;
+                        }
+
+                        try {
+                            const bemoJettonWallet = new TonWeb.token.jetton.JettonWallet(tonweb.provider, { address: bemoV1JettonWalletAddress });
+                            const bemoJettonWalletData = await bemoJettonWallet.getData();
+
+                            vestingData.bemoV1Balance = bemoJettonWalletData.balance;
+
+                            if (unstakeBemoJettonBalanceEl) {
+                                unstakeBemoJettonBalanceEl.innerHTML =
+                                    `Available: ${bold(formatAmount(vestingData.bemoV1Balance, BEMO_V1_TOKEN_NAME))}<br/>
+                                    Additionally, ${BEMO_UNSTAKE_FEE} TON will be sent from the vesting wallet to settle fees`;
+                            }
+                        } catch (e) {
+                            // Can't get Bemo v1 Jetton wallet data
+                        }
+
+                        // force isWallet flag to false to render it correctly in whitelist
+                        localStorage.setItem('format_' + (new TonWeb.utils.Address(bemoV1JettonWalletAddress).toString(false)), 'false');
+                    }
 
                     for (const address of whitelist) {
                         const isWallet = await checkIsWallet(address.toString(false));
@@ -1182,6 +1386,14 @@
         let ktonAvailableAmount = vestingWalletInfo.balance.sub(toNano(KTON_FEE_RES));
         if (ktonAvailableAmount.lt(new BN(0))) ktonAvailableAmount = new BN(0);
 
+        /** @type {BN} */
+        let bemoV2AvailableAmount = vestingWalletInfo.balance.sub(toNano(BEMO_FEE_RES));
+        if (bemoV2AvailableAmount.lt(new BN(0))) bemoV2AvailableAmount = new BN(0);
+
+        /** @type {BN} */
+        let bemoV1AvailableAmount = vestingWalletInfo.balance.sub(toNano(BEMO_FEE_RES));
+        if (bemoV1AvailableAmount.lt(new BN(0))) bemoV1AvailableAmount = new BN(0);
+
         /** @type {string} */
         const unlockString = vestingWalletInfo.unlockPeriod === vestingWalletInfo.vestingTotalDuration ? '-' :
             `Every ${formatPeriod(vestingWalletInfo.unlockPeriod)} ${vestingWalletInfo.cliffDuration > 0 ? 'after cliff period' : ''}`;
@@ -1207,6 +1419,12 @@
         /** @type {boolean} */
         const isKTONPoolWhitelisted = vestingWalletInfo.whitelist.includes(KTON_POOL_ADDRESS);
 
+        /** @type {boolean} */
+        const isBemoV2TreasuryWhitelisted = vestingWalletInfo.whitelist.includes(BEMO_V2_TREASURY_ADDRESS);
+
+        /** @type {boolean} */
+        const isBemoV1TreasuryWhitelisted = vestingWalletInfo.whitelist.includes(BEMO_V1_TREASURY_ADDRESS);
+
         const div = document.createElement('div');
         div.innerHTML =
             `
@@ -1229,6 +1447,8 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         ${vestingWalletInfo.jettonBalance ? `<div id="vesting_stakingJettonBalance">${formatAmount(vestingWalletInfo.jettonBalance, STAKE_TOKEN_NAME)}</div>` : ''}
         ${vestingWalletInfo.hipoBalance ? `<div id="vesting_hipoJettonBalance">${formatAmount(vestingWalletInfo.hipoBalance, HIPO_TOKEN_NAME)}</div>` : ''}
         ${vestingWalletInfo.ktonBalance ? `<div id="vesting_ktonJettonBalance">${formatAmount(vestingWalletInfo.ktonBalance, KTON_TOKEN_NAME)}</div>` : ''}
+        ${vestingWalletInfo.bemoV2Balance ? `<div id="vesting_bemoV2JettonBalance">${formatAmount(vestingWalletInfo.bemoV2Balance, BEMO_V2_TOKEN_NAME)}</div>` : ''}
+        ${vestingWalletInfo.bemoV1Balance ? `<div id="vesting_bemoV1JettonBalance">${formatAmount(vestingWalletInfo.bemoV1Balance, BEMO_V1_TOKEN_NAME)}</div>` : ''}
     </div>
 
     <div class="vesting_key">
@@ -1303,7 +1523,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
 
     ${isOwner ? `<button id="vesting_sendBtn${index}" class="btn">Send from Vesting</button>` : ``}
     ${isSender ? `<button id="vesting_addWhitelistBtn${index}" class="btn">Add whitelist</button>` : ``}
-    ${isOwner && (isStakingContractWhitelisted || isHipoTreasuryWhitelisted || isKTONPoolWhitelisted) ?
+    ${isOwner && (isStakingContractWhitelisted || isHipoTreasuryWhitelisted || isKTONPoolWhitelisted || isBemoV2TreasuryWhitelisted || isBemoV1TreasuryWhitelisted) ?
         `<div class="vesting_3rd">
             <div class="vesting_3rd-title">Use with 3rd party</div>
             ${isStakingContractWhitelisted ? `
@@ -1317,6 +1537,14 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
             ${isKTONPoolWhitelisted ? `
                 <button id="vesting_ktonStakeBtn${index}" class="btn">Stake with KTON</button>
                 <button id="vesting_ktonUnstakeBtn${index}" class="btn vesting_unstakeBtn" ${ktonJettonWalletAddress && vestingWalletInfo.whitelist.includes(ktonJettonWalletAddress) ? '' : 'disabled'}>Unstake with KTON</button>
+            ` : ''}
+            ${isBemoV2TreasuryWhitelisted ? `
+                <button id="vesting_bemoV2StakeBtn${index}" class="btn">Stake with Bemo v2</button>
+                <button id="vesting_bemoV2UnstakeBtn${index}" class="btn vesting_unstakeBtn" ${bemoV2JettonWalletAddress ? '' : 'disabled'}>Unstake with Bemo v2</button>
+            ` : ''}
+            ${isBemoV1TreasuryWhitelisted ? `
+                <button id="vesting_bemoV1StakeBtn${index}" class="btn">Stake with Bemo v1</button>
+                <button id="vesting_bemoV1UnstakeBtn${index}" class="btn vesting_unstakeBtn" ${bemoV1JettonWalletAddress ? '' : 'disabled'}>Unstake with Bemo v1</button>
             ` : ''}
         </div>` : ``}
 </div>`
@@ -1374,6 +1602,30 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         div.querySelector('#vesting_ktonUnstakeBtn' + index)?.addEventListener('click', () => {
             $('#ktonUnstakePopup_amountInput').value = '';
             showPopup('ktonUnstakePopup');
+        });
+
+        $('#bemoV2StakePopup_availableToStake').innerHTML = `Available: ${bold(formatAmount(bemoV2AvailableAmount))}<br/>${BEMO_FEE_RES} TON reserved for fees`;
+
+        div.querySelector('#vesting_bemoV2StakeBtn' + index)?.addEventListener('click', () => {
+            $('#bemoV2StakePopup_amountInput').value = '';
+            showPopup('bemoV2StakePopup');
+        });
+
+        div.querySelector('#vesting_bemoV2UnstakeBtn' + index)?.addEventListener('click', () => {
+            $('#bemoV2UnstakePopup_amountInput').value = '';
+            showPopup('bemoV2UnstakePopup');
+        });
+
+        $('#bemoV1StakePopup_availableToStake').innerHTML = `Available: ${bold(formatAmount(bemoV1AvailableAmount))}<br/>${BEMO_FEE_RES} TON reserved for fees`;
+
+        div.querySelector('#vesting_bemoV1StakeBtn' + index)?.addEventListener('click', () => {
+            $('#bemoV1StakePopup_amountInput').value = '';
+            showPopup('bemoV1StakePopup');
+        });
+
+        div.querySelector('#vesting_bemoV1UnstakeBtn' + index)?.addEventListener('click', () => {
+            $('#bemoV1UnstakePopup_amountInput').value = '';
+            showPopup('bemoV1UnstakePopup');
         });
 
         return div;
@@ -1576,6 +1828,106 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         const payload = TonWeb.boc.Cell.oneFromBoc(await prepareKTONPayload(KTON_UNSTAKE_PAYLOAD, amount));
 
         sendFromVesting(toAddress, toNano(KTON_UNSTAKE_FEE), payload);
+    });
+
+    const prepareBemoPayload = async (payloadType, inputAmount = null, toAddress = null, waitTillRoundEnd = false, fillOrKill = false) => {
+        const payload = new TonWeb.boc.Cell();
+
+        switch (payloadType) {
+            case BEMO_STAKE_PAYLOAD:
+                break;
+            case BEMO_UNSTAKE_PAYLOAD:
+                payload.bits.writeUint(payloadType, 32);
+                payload.bits.writeUint(0, 64);
+                payload.bits.writeCoins(inputAmount.toNumber());
+
+                const queryAddress = new TonWeb.utils.Address(currentAddress);
+                payload.bits.writeAddress(queryAddress);
+
+                payload.bits.writeBit(0);
+
+                break;
+        }
+
+        return payload.toBoc(false);
+    }
+
+    $('#bemoV2StakePopup_sendButton').addEventListener('click', async () => {
+        /** @type {BN} */
+        let amount;
+        try {
+            const amountString = $('#bemoV2StakePopup_amountInput').value;
+            if (!amountString) throw new Error();
+            amount = toNano(amountString);
+            if (!amount.gt(new BN(0))) throw new Error();
+            amount = amount.add(toNano(BEMO_STAKE_FEE));
+        } catch (e) {
+            alert('Not valid amount');
+            return;
+        }
+
+        const toAddress = BEMO_V2_TREASURY_ADDRESS
+        const payload = TonWeb.boc.Cell.oneFromBoc(await prepareBemoPayload(BEMO_STAKE_PAYLOAD));
+
+        sendFromVesting(toAddress, amount, payload);
+    });
+
+    $('#bemoV2UnstakePopup_sendButton').addEventListener('click', async () => {
+        /** @type {BN} */
+        let amount;
+        try {
+            const amountString = $('#bemoV2UnstakePopup_amountInput').value;
+            if (!amountString) throw new Error();
+            amount = toNano(amountString);
+            if (!amount.gt(new BN(0))) throw new Error();
+        } catch (e) {
+            alert('Not valid amount');
+            return;
+        }
+
+        const toAddress = bemoV2JettonWalletAddress;
+        const payload = TonWeb.boc.Cell.oneFromBoc(await prepareBemoPayload(BEMO_UNSTAKE_PAYLOAD, amount));
+
+        sendFromVesting(toAddress, toNano(BEMO_UNSTAKE_FEE), payload);
+    });
+
+    $('#bemoV1StakePopup_sendButton').addEventListener('click', async () => {
+        /** @type {BN} */
+        let amount;
+        try {
+            const amountString = $('#bemoV1StakePopup_amountInput').value;
+            if (!amountString) throw new Error();
+            amount = toNano(amountString);
+            if (!amount.gt(new BN(0))) throw new Error();
+            amount = amount.add(toNano(BEMO_STAKE_FEE));
+        } catch (e) {
+            alert('Not valid amount');
+            return;
+        }
+
+        const toAddress = BEMO_V1_TREASURY_ADDRESS
+        const payload = TonWeb.boc.Cell.oneFromBoc(await prepareBemoPayload(BEMO_STAKE_PAYLOAD));
+
+        sendFromVesting(toAddress, amount, payload);
+    });
+
+    $('#bemoV1UnstakePopup_sendButton').addEventListener('click', async () => {
+        /** @type {BN} */
+        let amount;
+        try {
+            const amountString = $('#bemoV1UnstakePopup_amountInput').value;
+            if (!amountString) throw new Error();
+            amount = toNano(amountString);
+            if (!amount.gt(new BN(0))) throw new Error();
+        } catch (e) {
+            alert('Not valid amount');
+            return;
+        }
+
+        const toAddress = bemoV1JettonWalletAddress;
+        const payload = TonWeb.boc.Cell.oneFromBoc(await prepareBemoPayload(BEMO_UNSTAKE_PAYLOAD, amount));
+
+        sendFromVesting(toAddress, toNano(BEMO_UNSTAKE_FEE), payload);
     });
 
     // SEND
@@ -1912,17 +2264,37 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
             const hipoJettonWalletAddressString = hipoJettonWalletAddress.toString(true, true, true, IS_TESTNET);
             const ktonJettonWalletAddress = await getKTONJettonWalletAddress(vestingWalletAddress.toString(true, true, true, IS_TESTNET));
             const ktonJettonWalletAddressString = ktonJettonWalletAddress.toString(true, true, true, IS_TESTNET);
+            const bemoV2JettonWalletAddress = await getBemoJettonWalletAddress(vestingWalletAddress.toString(true, true, true, IS_TESTNET), 'v2');
+            const bemoV2JettonWalletAddressString = bemoV2JettonWalletAddress.toString(true, true, true, IS_TESTNET);
+            const bemoV1JettonWalletAddress = await getBemoJettonWalletAddress(vestingWalletAddress.toString(true, true, true, IS_TESTNET), 'v1');
+            const bemoV1JettonWalletAddressString = bemoV1JettonWalletAddress.toString(true, true, true, IS_TESTNET);
 
-            if (createState.whitelistAddresses.includes(createState.stakingJettonWalletAddress) || createState.whitelistAddresses.includes(createState.hipoJettonWalletAddress) || createState.whitelistAddresses.includes(createState.ktonJettonWalletAddress)) {
-                createState.whitelistAddresses = createState.whitelistAddresses.map(address => address === createState.stakingJettonWalletAddress ? stakingJettonWalletAddressSting : (address === createState.hipoJettonWalletAddress ? hipoJettonWalletAddressString : (address === createState.ktonJettonWalletAddress ? ktonJettonWalletAddressString : address)));
-                createState.stakingJettonWalletAddress = stakingJettonWalletAddressSting;
-                createState.hipoJettonWalletAddress = hipoJettonWalletAddressString;
-                createState.ktonJettonWalletAddress = ktonJettonWalletAddressString;
-                renderCreateWhitelist();
+            if (createState.whitelistAddresses.includes(createState.stakingJettonWalletAddress) || 
+                createState.whitelistAddresses.includes(createState.hipoJettonWalletAddress) || 
+                createState.whitelistAddresses.includes(createState.ktonJettonWalletAddress) || 
+                createState.whitelistAddresses.includes(createState.bemoV2JettonWalletAddress) ||
+                createState.whitelistAddresses.includes(createState.bemoV1JettonWalletAddress)) {
+
+                    createState.whitelistAddresses = createState.whitelistAddresses.map(
+                        address => address === createState.stakingJettonWalletAddress ? stakingJettonWalletAddressSting : 
+                        address === createState.hipoJettonWalletAddress ? hipoJettonWalletAddressString : 
+                        address === createState.ktonJettonWalletAddress ? ktonJettonWalletAddressString : 
+                        address === createState.bemoV2JettonWalletAddress ? bemoV2JettonWalletAddressString : 
+                        address === createState.bemoV1JettonWalletAddress ? bemoV1JettonWalletAddressString : address
+                    )
+                    
+                    createState.stakingJettonWalletAddress = stakingJettonWalletAddressSting;
+                    createState.hipoJettonWalletAddress = hipoJettonWalletAddressString;
+                    createState.ktonJettonWalletAddress = ktonJettonWalletAddressString;
+                    createState.bemoV2JettonWalletAddress = bemoV2JettonWalletAddress;
+                    createState.bemoV1JettonWalletAddress = bemoV1JettonWalletAddress;
+                    renderCreateWhitelist();
             } else {
                 createState.stakingJettonWalletAddress = stakingJettonWalletAddressSting;
                 createState.hipoJettonWalletAddress = hipoJettonWalletAddressString;
                 createState.ktonJettonWalletAddress = ktonJettonWalletAddressString;
+                createState.bemoV2JettonWalletAddress = bemoV2JettonWalletAddressString;
+                createState.bemoV1JettonWalletAddress = bemoV1JettonWalletAddressString;
             }
         }
     }
@@ -1995,6 +2367,10 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         $('#whitelist_useHipoJettonButton').style.display = isCreate ? 'none' : 'block';
         $('#whitelist_useKTONPoolButton').style.display = isCreate ? 'none' : 'block';
         $('#whitelist_useKTONJettonButton').style.display = isCreate ? 'none' : 'block';
+        $('#whitelist_useBemoV2TreasuryButton').style.display = isCreate ? 'none' : 'block';
+        $('#whitelist_useBemoV2JettonButton').style.display = isCreate ? 'none' : 'block';
+        $('#whitelist_useBemoV1TreasuryButton').style.display = isCreate ? 'none' : 'block';
+        $('#whitelist_useBemoV1JettonButton').style.display = isCreate ? 'none' : 'block';
         addressForCheck = null;
         $('#whitelist_addressInput').value = '';
         $('#whitelist_info').innerText = '';
@@ -2065,6 +2441,10 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
     $('#hipoUnstakePopup').addEventListener('click', e => e.stopImmediatePropagation());
     $('#ktonStakePopup').addEventListener('click', e => e.stopImmediatePropagation());
     $('#ktonUnstakePopup').addEventListener('click', e => e.stopImmediatePropagation());
+    $('#bemoV2StakePopup').addEventListener('click', e => e.stopImmediatePropagation());
+    $('#bemoV2UnstakePopup').addEventListener('click', e => e.stopImmediatePropagation());
+    $('#bemoV1StakePopup').addEventListener('click', e => e.stopImmediatePropagation());
+    $('#bemoV1UnstakePopup').addEventListener('click', e => e.stopImmediatePropagation());
 
     /**
      * @param a {string}
@@ -2117,6 +2497,38 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
 
     $('#whitelist_useKTONJettonButton').addEventListener('click', async() => {
         $('#whitelist_addressInput').value = createState?.ktonJettonWalletAddress || ktonJettonWalletAddress;
+        if(vestingWallet && ((await vestingWallet.getAddress()).wc < 0)) {
+            $('#whitelist_addressInput').value = "Error: masterchain vesting can not be used with liquid staking"
+        }
+        onWhitelistAddressInput();
+    })
+
+    $('#whitelist_useBemoV2TreasuryButton').addEventListener('click', async () => {
+        $('#whitelist_addressInput').value = BEMO_V2_TREASURY_ADDRESS;
+        if(vestingWallet && ((await vestingWallet.getAddress()).wc < 0)) {
+            $('#whitelist_addressInput').value = "Error: masterchain vesting can not be used with liquid staking"
+        }
+        onWhitelistAddressInput();
+    })
+
+    $('#whitelist_useBemoV2JettonButton').addEventListener('click', async() => {
+        $('#whitelist_addressInput').value = createState?.bemoV2JettonWalletAddress || bemoV2JettonWalletAddress;
+        if(vestingWallet && ((await vestingWallet.getAddress()).wc < 0)) {
+            $('#whitelist_addressInput').value = "Error: masterchain vesting can not be used with liquid staking"
+        }
+        onWhitelistAddressInput();
+    })
+
+    $('#whitelist_useBemoV1TreasuryButton').addEventListener('click', async () => {
+        $('#whitelist_addressInput').value = BEMO_V1_TREASURY_ADDRESS;
+        if(vestingWallet && ((await vestingWallet.getAddress()).wc < 0)) {
+            $('#whitelist_addressInput').value = "Error: masterchain vesting can not be used with liquid staking"
+        }
+        onWhitelistAddressInput();
+    })
+
+    $('#whitelist_useBemoV1JettonButton').addEventListener('click', async() => {
+        $('#whitelist_addressInput').value = createState?.bemoV1JettonWalletAddress || bemoV1JettonWalletAddress;
         if(vestingWallet && ((await vestingWallet.getAddress()).wc < 0)) {
             $('#whitelist_addressInput').value = "Error: masterchain vesting can not be used with liquid staking"
         }

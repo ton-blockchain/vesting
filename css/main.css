@@ -588,9 +588,10 @@ input::-webkit-date-and-time-value {
 #addWhitelistPopup {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     flex-direction: column;
     width: 300px;
+    max-width: calc(100% - 32px);
     position: fixed;
     left: 50%;
     top: 50%;
@@ -599,6 +600,8 @@ input::-webkit-date-and-time-value {
     border-radius: 24px;
     padding: 20px;
     margin: 0;
+    max-height: 80vh;
+    overflow-y: auto;
 }
 
 #whitelist_label {
@@ -643,6 +646,10 @@ input::-webkit-date-and-time-value {
 #whitelist_useHipoJettonButton,
 #whitelist_useKTONPoolButton,
 #whitelist_useKTONJettonButton,
+#whitelist_useBemoV2TreasuryButton,
+#whitelist_useBemoV2JettonButton,
+#whitelist_useBemoV1TreasuryButton,
+#whitelist_useBemoV1JettonButton,
 #whitelist_useElectorButton {
     margin-top: 10px;
     width: 100%;
