@@ -829,7 +829,9 @@
      * @param address   {string}
      */
     const getHipoJettonWalletAddress = async (address) => {
-        const HIPO_JETTON_MINTER_ADDRESS_INDEX = 5;
+        // Hipo's get_treasury_state is a flat tuple read positionally, and it gained a
+        // deficit field ahead of the parent, moving the jetton minter from 5 to 6.
+        const HIPO_JETTON_MINTER_ADDRESS_INDEX = 6;
         try {
             const hipoTreasuryResponse = await tonweb.provider.call2(HIPO_TREASURY_ADDRESS, 'get_treasury_state');
             const hipoJettonMinterAddress = hipoTreasuryResponse[HIPO_JETTON_MINTER_ADDRESS_INDEX]?.beginParse().loadAddress();
