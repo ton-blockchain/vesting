@@ -17,7 +17,7 @@
 <body>
 
 <div class="testnet-badge" style="display: none">
-    ATTENTION! This is the test network — don't send real Toncoin!
+    ATTENTION! This is the test network — don't send real Gram!
 </div>
 
 <!--Header-->
@@ -59,7 +59,7 @@
     </div>
 
     <div class="main_info">
-        Manage wallets with Toncoin locked for some time.
+        Manage wallets with Gram locked for some time.
     </div>
 
     <div class="main_input-container">
@@ -112,7 +112,7 @@
         <div class="create_input">
             <input id="create_startTimeInput" type="datetime-local">
         </div>
-        <div class="create_label">Total vesting amount (TON):</div>
+        <div class="create_label">Total vesting amount (GRAM):</div>
         <div class="create_input">
             <input id="create_totalAmountInput" type="number">
         </div>
@@ -573,7 +573,7 @@
      * @param token {string}
      * @return {string}
      */
-    const formatAmount = (nano, token = 'TON') => {
+    const formatAmount = (nano, token = 'GRAM') => {
         return fromNano(nano) + ' ' + token;
     }
 
@@ -1111,7 +1111,7 @@
                             if (unstakeStakingJettonBalanceEl) {
                                 unstakeStakingJettonBalanceEl.innerHTML =
                                     `Available: ${bold(formatAmount(vestingData.jettonBalance, STAKE_TOKEN_NAME))}<br/>
-                                    Additionally, ${UNSTAKE_FEE} TON will be sent from the vesting wallet to settle fees`;
+                                    Additionally, ${UNSTAKE_FEE} GRAM will be sent from the vesting wallet to settle fees`;
                             }
                         } catch (e) {
                             // Can't get stakingJetton wallet data
@@ -1137,7 +1137,7 @@
                             if (unstakeHipoJettonBalanceEl) {
                                 unstakeHipoJettonBalanceEl.innerHTML =
                                     `Available: ${bold(formatAmount(vestingData.hipoBalance, HIPO_TOKEN_NAME))}<br/>
-                                    Additionally, ${HIPO_UNSTAKE_FEE} TON will be sent from the vesting wallet to settle fees`;
+                                    Additionally, ${HIPO_UNSTAKE_FEE} GRAM will be sent from the vesting wallet to settle fees`;
                             }
                         } catch (e) {
                             // Can't get hipoJetton wallet data
@@ -1163,7 +1163,7 @@
                             if (unstakeKTONJettonBalanceEl) {
                                 unstakeKTONJettonBalanceEl.innerHTML =
                                     `Available: ${bold(formatAmount(vestingData.ktonBalance, KTON_TOKEN_NAME))}<br/>
-                                    Additionally, ${KTON_UNSTAKE_FEE} TON will be sent from the vesting wallet to settle fees`;
+                                    Additionally, ${KTON_UNSTAKE_FEE} GRAM will be sent from the vesting wallet to settle fees`;
                             }
                         } catch (e) {
                             // Can't get KTON Jetton wallet data
@@ -1189,7 +1189,7 @@
                             if (unstakeBemoJettonBalanceEl) {
                                 unstakeBemoJettonBalanceEl.innerHTML =
                                     `Available: ${bold(formatAmount(vestingData.bemoV2Balance, BEMO_V2_TOKEN_NAME))}<br/>
-                                    Additionally, ${BEMO_UNSTAKE_FEE} TON will be sent from the vesting wallet to settle fees`;
+                                    Additionally, ${BEMO_UNSTAKE_FEE} GRAM will be sent from the vesting wallet to settle fees`;
                             }
                         } catch (e) {
                             // Can't get Bemo v2 Jetton wallet data
@@ -1215,7 +1215,7 @@
                             if (unstakeBemoJettonBalanceEl) {
                                 unstakeBemoJettonBalanceEl.innerHTML =
                                     `Available: ${bold(formatAmount(vestingData.bemoV1Balance, BEMO_V1_TOKEN_NAME))}<br/>
-                                    Additionally, ${BEMO_UNSTAKE_FEE} TON will be sent from the vesting wallet to settle fees`;
+                                    Additionally, ${BEMO_UNSTAKE_FEE} GRAM will be sent from the vesting wallet to settle fees`;
                             }
                         } catch (e) {
                             // Can't get Bemo v1 Jetton wallet data
@@ -1588,7 +1588,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
             showPopup('sendPopup');
         });
 
-        $('#stakePopup_availableToStake').innerHTML = `Available: ${bold(formatAmount(stakingAvailableAmount))}<br/>${STAKING_FEE_RES} TON reserved for fees`;
+        $('#stakePopup_availableToStake').innerHTML = `Available: ${bold(formatAmount(stakingAvailableAmount))}<br/>${STAKING_FEE_RES} GRAM reserved for fees`;
 
         div.querySelector('#vesting_stakeBtn' + index)?.addEventListener('click', () => {
             $('#stakePopup_amountInput').value = '';
@@ -1600,7 +1600,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
             showPopup('unstakePopup');
         });
 
-        $('#hipoStakePopup_availableToStake').innerHTML = `Available: ${bold(formatAmount(hipoAvailableAmount))}<br/>${HIPO_FEE_RES} TON reserved for fees`;
+        $('#hipoStakePopup_availableToStake').innerHTML = `Available: ${bold(formatAmount(hipoAvailableAmount))}<br/>${HIPO_FEE_RES} GRAM reserved for fees`;
 
         div.querySelector('#vesting_hipoStakeBtn' + index)?.addEventListener('click', () => {
             $('#hipoStakePopup_amountInput').value = '';
@@ -1612,7 +1612,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
             showPopup('hipoUnstakePopup');
         });
 
-        $('#ktonStakePopup_availableToStake').innerHTML = `Available: ${bold(formatAmount(ktonAvailableAmount))}<br/>${KTON_FEE_RES} TON reserved for fees`;
+        $('#ktonStakePopup_availableToStake').innerHTML = `Available: ${bold(formatAmount(ktonAvailableAmount))}<br/>${KTON_FEE_RES} GRAM reserved for fees`;
 
         div.querySelector('#vesting_ktonStakeBtn' + index)?.addEventListener('click', () => {
             $('#ktonStakePopup_amountInput').value = '';
@@ -1624,7 +1624,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
             showPopup('ktonUnstakePopup');
         });
 
-        $('#bemoV2StakePopup_availableToStake').innerHTML = `Available: ${bold(formatAmount(bemoV2AvailableAmount))}<br/>${BEMO_FEE_RES} TON reserved for fees`;
+        $('#bemoV2StakePopup_availableToStake').innerHTML = `Available: ${bold(formatAmount(bemoV2AvailableAmount))}<br/>${BEMO_FEE_RES} GRAM reserved for fees`;
 
         div.querySelector('#vesting_bemoV2StakeBtn' + index)?.addEventListener('click', () => {
             $('#bemoV2StakePopup_amountInput').value = '';
@@ -1636,7 +1636,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
             showPopup('bemoV2UnstakePopup');
         });
 
-        $('#bemoV1StakePopup_availableToStake').innerHTML = `Available: ${bold(formatAmount(bemoV1AvailableAmount))}<br/>${BEMO_FEE_RES} TON reserved for fees`;
+        $('#bemoV1StakePopup_availableToStake').innerHTML = `Available: ${bold(formatAmount(bemoV1AvailableAmount))}<br/>${BEMO_FEE_RES} GRAM reserved for fees`;
 
         div.querySelector('#vesting_bemoV1StakeBtn' + index)?.addEventListener('click', () => {
             $('#bemoV1StakePopup_amountInput').value = '';
@@ -2203,7 +2203,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         require(vestingEndTime, '')
 
         if (!amountNano.gte(new TonWeb.utils.BN(1e9))) {
-            throw 'Minimum 1 TON';
+            throw 'Minimum 1 GRAM';
         }
 
         if (startTime < 0) {

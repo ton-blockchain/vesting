@@ -75,7 +75,7 @@ const checkPool = async (tonweb, poolAddress) => {
 
     return {
         status: SUCCESS,
-        text: `ADDING NOMINATOR-POOL TO THE WHITELIST IS PROHIBITED! Nominator Pool: ${rewardShare / 100}% validator reward, ${maxNominatorsCount} max nominators, ${TonWeb.utils.fromNano(minValidatorStake)} TON min validator stake, ${TonWeb.utils.fromNano(minNominatorStake)} TON min nominator stake.`
+        text: `ADDING NOMINATOR-POOL TO THE WHITELIST IS PROHIBITED! Nominator Pool: ${rewardShare / 100}% validator reward, ${maxNominatorsCount} max nominators, ${TonWeb.utils.fromNano(minValidatorStake)} GRAM min validator stake, ${TonWeb.utils.fromNano(minNominatorStake)} GRAM min nominator stake.`
     }
 }
 
