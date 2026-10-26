@@ -30,8 +30,10 @@ const VestingDisplayAddress = (() => {
         }
     };
 
-    const fallbackFor = (account, isTestnet, previous) => account
-        ? checkedFriendly(previous, account, isTestnet) || new TonWeb.Address(account).toString(true, true, true, isTestnet)
+    const fallbackFor = (account, isTestnet, previous, original) => account
+        ? checkedFriendly(previous, account, isTestnet)
+            || checkedFriendly(original, account, isTestnet)
+            || new TonWeb.Address(account).toString(true, true, true, isTestnet)
         : '';
 
     /**
@@ -40,11 +42,11 @@ const VestingDisplayAddress = (() => {
      * @param apiKey {string}
      * @param previous {(string | undefined)[]} Optional fallback presentation by index.
      * @return {Promise<string[]>} Input order and duplicates preserved; invalid input is ''.
-     * Fallback keeps the UI usable and does not classify the account.
+     * Fallback preserves validated previous or input presentation and does not classify the account.
      */
     async function resolve(values, isTestnet, apiKey, previous = []) {
         const accounts = values.map(raw);
-        const fallback = accounts.map((account, i) => fallbackFor(account, isTestnet, previous[i]));
+        const fallback = accounts.map((account, i) => fallbackFor(account, isTestnet, previous[i], values[i]));
         const unique = [...new Set(accounts.filter(Boolean))];
         if (!unique.length) return fallback;
         const batches = [];
