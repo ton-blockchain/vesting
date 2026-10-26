@@ -81,11 +81,13 @@ const checkPool = async (tonweb, poolAddress) => {
 
 /**
  * @param tonweb    {TonWeb}
- * @param poolAddress {Address} in raw form
+ * @param poolAddress {string} in raw form
  * @param version {string}
+ * @param isTestnet {boolean}
+ * @param apiKey {string}
  * @return {Promise<{status: 'SUCCESS' | 'INVALID' | 'NO_RESPONSE', text: string}>}
  */
-const checkSingleNominator = async (tonweb, poolAddress, version) => {
+const checkSingleNominator = async (tonweb, poolAddress, version, isTestnet, apiKey) => {
     const data = await tonweb.provider.call2(poolAddress, 'get_roles');
 
     /** @type {Address} */
@@ -93,9 +95,11 @@ const checkSingleNominator = async (tonweb, poolAddress, version) => {
     /** @type {Address} */
     const validatorAddress = data[1].beginParse().loadAddress();
 
+    const [ownerDisplay, validatorDisplay] = await VestingDisplayAddress.resolve([ownerAddress, validatorAddress], isTestnet, apiKey);
+
     return {
         status: SUCCESS,
-        text: 'Single nominator ' + version + ', owner is ' + ownerAddress.toString(true, true, true) + ' (MUST BE EQUAL VESTING-WALLET ADDRESS), validator is ' + validatorAddress.toString(true, true, true)
+        text: 'Single nominator ' + version + ', owner is ' + ownerDisplay + ' (MUST BE EQUAL VESTING-WALLET ADDRESS), validator is ' + validatorDisplay
     };
 }
 
@@ -114,9 +118,11 @@ const codeEquals = async (codeBase64, codeHashBase64) => {
 /**
  * @param tonweb    {TonWeb}
  * @param address {Address}
+ * @param isTestnet {boolean}
+ * @param apiKey {string}
  * @return {Promise<{status: 'SUCCESS' | 'INVALID' | 'NO_RESPONSE', text: string}>}
  */
-const checkSmartContract = async (tonweb, address) => {
+const checkSmartContract = async (tonweb, address, isTestnet = false, apiKey) => {
     try {
         /** @type {string} */
         const addressString = address.toString(false);
@@ -199,11 +205,11 @@ const checkSmartContract = async (tonweb, address) => {
 
         } else if (await codeEquals(info.code, SINGLE_NOMINATOR_1_0_CODE_HASH)) {
 
-           return checkSingleNominator(tonweb, addressString, '1.0');
+           return checkSingleNominator(tonweb, addressString, '1.0', isTestnet, apiKey);
 
         } else if (await codeEquals(info.code, SINGLE_NOMINATOR_1_1_CODE_HASH)) {
 
-           return checkSingleNominator(tonweb, addressString, '1.1');
+           return checkSingleNominator(tonweb, addressString, '1.1', isTestnet, apiKey);
 
         } else {
             const walletInfo = await tonweb.provider.getWalletInfo(addressString);

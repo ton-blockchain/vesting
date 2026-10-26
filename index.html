@@ -10,8 +10,9 @@
     <script src="lib/tonweb-0.0.66.js"></script>
     <!--    <script src="lib/tonconnect-ui-1.0.0-beta.5.min.js"></script>-->
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-    <script src="js/check-smart-contract.js?5.1"></script>
-    <link rel="stylesheet" href="css/main.css?4.1">
+    <script src="js/display-address.js?3"></script>
+    <script src="js/check-smart-contract.js?5.2"></script>
+    <link rel="stylesheet" href="css/main.css?4.4">
 </head>
 <body>
 
@@ -83,12 +84,12 @@
 <!-- Address Screen-->
 
 <div id="addressScreen" class="screen">
-    <div class="address_header">Address</div>
+    <div class="address_header"></div>
     <div id="address_userAddress" class="address"></div>
 
     <div id="address_info"></div>
 
-    <div id="address_loading" class="loading"></div>
+    <div id="address_loading" class="loading" role="status" aria-label="Loading address"></div>
 
     <button id="wallet_createButton" class="btn">Create new vesting for this user</button>
 
@@ -350,16 +351,6 @@
     }
 
     /**
-     * @param address   {string}
-     * @return {string}
-     */
-    const scanLink = (address) => {
-        checkHTML(address);
-        if (!TonWeb.utils.Address.isValid(address)) throw new Error('invalid address');
-        return `https://${IS_TESTNET ? 'testnet.' : ''}tonscan.org/address/${address}`;
-    }
-
-    /**
      * @param name  {'addWhitelistPopup' | 'sendPopup' | 'stakePopup' | 'unstakePopup' | 'hipoStakePopup' | 'hipoUnstakePopup' | 'ktonStakePopup' | 'ktonUnstakePopup' | 'bemoV2StakePopup' | 'bemoV2UnstakePopup' | 'bemoV1StakePopup' | 'bemoV1UnstakePopup'}
      */
     const showPopup = (name) => {
@@ -449,8 +440,6 @@
     const TONCENTER_API_KEY = IS_TESTNET ? 'd843619b379084d133f061606beecbf72ae2bf60e0622e808f2a3f631673599b' : 'd843619b379084d133f061606beecbf72ae2bf60e0622e808f2a3f631673599b';
     /** @type {string} */
     const TONCENTER_URL = IS_TESTNET ? 'https://testnet.toncenter.com/api/v2/jsonRPC' : 'https://toncenter.com/api/v2/jsonRPC';
-    /** @type {string} */
-    const TONCENTER_INDEX_URL = IS_TESTNET ? 'https://testnet.toncenter.com/api/v3/' : 'https://toncenter.com/api/v3/';
     /** @type {TonWeb} */
     const tonweb = new TonWeb(new TonWeb.HttpProvider(TONCENTER_URL, {apiKey: TONCENTER_API_KEY}));
 
@@ -624,22 +613,22 @@
     }
 
     /**
-     * @param address   {string}
-     * @return {string}
-     */
-    const formatAddress = (address) => {
-        checkHTML(address);
-        if (!TonWeb.utils.Address.isValid(address)) throw new Error('invalid address');
-        return `${address.substring(0, address.length / 2)}<wbr>${address.substring(address.length / 2)}`
-    }
-
-    /**
      * @param container {HTMLElement}
      * @param list  {string[]}
      * @param senderAddressString   {string}
      * @param isCreateScreen    {boolean}
+     * @return {Promise<void>}
      */
     const renderWhitelist = (container, list, senderAddressString, isCreateScreen) => {
+        const identities = new Map();
+        const identity = (address) => {
+            if (!identities.has(address)) identities.set(address, VestingDisplayAddress.raw(address));
+            return identities.get(address);
+        };
+        const sameAccount = (a, b) => {
+            const account = identity(a);
+            return account !== null && account === identity(b);
+        };
         /** @type {string} */
         const senderBadge = ` <div class="badge badge-blue">Sender</div>`;
         /** @type {string} */
@@ -673,14 +662,14 @@
         
         // Helper function to get address type and priority for sorting
         const getAddressType = (address) => {
-            if (address === senderAddressString) return { type: 'sender', priority: 0 };
-            if (address === STAKING_CONTRACT_ADDRESS) return { type: 'tonstakers', priority: 1 };
-            if (address === stakingJettonWalletAddress || address === createState?.stakingJettonWalletAddress) return { type: 'tonstakers', priority: 2 };
-            if (address === KTON_POOL_ADDRESS) return { type: 'kton', priority: 3 };
-            if (address === ktonJettonWalletAddress || address === createState?.ktonJettonWalletAddress) return { type: 'kton', priority: 4 };
-            if (address === HIPO_TREASURY_ADDRESS) return { type: 'hipo', priority: 5 };
-            if (address === hipoJettonWalletAddress || address === createState?.hipoJettonWalletAddress) return { type: 'hipo', priority: 6 };
-            if (address === ELECTOR_CONTRACT_ADDRESS) return { type: 'elector', priority: 7 };
+            if (sameAccount(address, senderAddressString)) return { type: 'sender', priority: 0 };
+            if (sameAccount(address, STAKING_CONTRACT_ADDRESS)) return { type: 'tonstakers', priority: 1 };
+            if (sameAccount(address, stakingJettonWalletAddress) || sameAccount(address, createState?.stakingJettonWalletAddress)) return { type: 'tonstakers', priority: 2 };
+            if (sameAccount(address, KTON_POOL_ADDRESS)) return { type: 'kton', priority: 3 };
+            if (sameAccount(address, ktonJettonWalletAddress) || sameAccount(address, createState?.ktonJettonWalletAddress)) return { type: 'kton', priority: 4 };
+            if (sameAccount(address, HIPO_TREASURY_ADDRESS)) return { type: 'hipo', priority: 5 };
+            if (sameAccount(address, hipoJettonWalletAddress) || sameAccount(address, createState?.hipoJettonWalletAddress)) return { type: 'hipo', priority: 6 };
+            if (sameAccount(address, ELECTOR_CONTRACT_ADDRESS)) return { type: 'elector', priority: 7 };
             return { type: 'other', priority: 8 };
         };
 
@@ -703,18 +692,18 @@
         for (let i = 0; i < sortedList.length; i++) {
             /** @type {string} */
             const address = sortedList[i];
-            const isSender = address === senderAddressString;
-            const isTonstakersPool = address === STAKING_CONTRACT_ADDRESS;
-            const isTonstakersJetton = address === stakingJettonWalletAddress || address === createState?.stakingJettonWalletAddress;
-            const isHipoTreasury = address === HIPO_TREASURY_ADDRESS;
-            const isHipoJetton = address === hipoJettonWalletAddress || address === createState?.hipoJettonWalletAddress;
-            const isKTONPool = address === KTON_POOL_ADDRESS;
-            const isKTONJetton = address === ktonJettonWalletAddress || address === createState?.ktonJettonWalletAddress;
-            const isBemoV2Treasury = address === BEMO_V2_TREASURY_ADDRESS;
-            const isBemoV2Jetton = address === bemoV2JettonWalletAddress || address === createState?.bemoV2JettonWalletAddress;
-            const isBemoV1Treasury = address === BEMO_V1_TREASURY_ADDRESS;
-            const isBemoV1Jetton = address === bemoV1JettonWalletAddress || address === createState?.bemoV1JettonWalletAddress;
-            const isElector = address === ELECTOR_CONTRACT_ADDRESS;
+            const isSender = sameAccount(address, senderAddressString);
+            const isTonstakersPool = sameAccount(address, STAKING_CONTRACT_ADDRESS);
+            const isTonstakersJetton = sameAccount(address, stakingJettonWalletAddress) || sameAccount(address, createState?.stakingJettonWalletAddress);
+            const isHipoTreasury = sameAccount(address, HIPO_TREASURY_ADDRESS);
+            const isHipoJetton = sameAccount(address, hipoJettonWalletAddress) || sameAccount(address, createState?.hipoJettonWalletAddress);
+            const isKTONPool = sameAccount(address, KTON_POOL_ADDRESS);
+            const isKTONJetton = sameAccount(address, ktonJettonWalletAddress) || sameAccount(address, createState?.ktonJettonWalletAddress);
+            const isBemoV2Treasury = sameAccount(address, BEMO_V2_TREASURY_ADDRESS);
+            const isBemoV2Jetton = sameAccount(address, bemoV2JettonWalletAddress) || sameAccount(address, createState?.bemoV2JettonWalletAddress);
+            const isBemoV1Treasury = sameAccount(address, BEMO_V1_TREASURY_ADDRESS);
+            const isBemoV1Jetton = sameAccount(address, bemoV1JettonWalletAddress) || sameAccount(address, createState?.bemoV1JettonWalletAddress);
+            const isElector = sameAccount(address, ELECTOR_CONTRACT_ADDRESS);
             const badge = isSender ? senderBadge : (isTonstakersPool || isTonstakersJetton ? tonstakersBadge : 
                                                     (isKTONPool ? ktonBadge : (isKTONJetton ? ktonJettonBadge : 
                                                     (isHipoTreasury || isHipoJetton ? hipoBadge : 
@@ -732,15 +721,19 @@
             // For create screen, we need to use original index for remove button
             const originalIndex = isCreateScreen ? list.indexOf(address) : i;
             
-            s += `<div class="create_whitelist-row">
+            s += `<div class="create_whitelist-row" style="display: none">
                 <div class="create_whitelist-num">${i + 1}.</div>
-                <a class="create_whitelist-address address" href="${scanLink(address)}" title="${title}" target="_blank">
-                    ${formatAddress(address)}
-                </a>
+                <a class="create_whitelist-address address" title="${title}" target="_blank" style="display: none" aria-busy="true" aria-label="Loading address"></a>
                 ${badge + (isSender ? '' : removeButton(originalIndex))}
             </div>`;
         }
-        container.innerHTML = s;
+        container.innerHTML = `<div class="loading" role="status" aria-label="Loading addresses"></div>` + s;
+        const spinner = container.querySelector('.loading');
+        const rows = [...container.querySelectorAll('.create_whitelist-row')];
+        return VestingDisplayAddress.setLinks([...container.querySelectorAll('a.address')], sortedList, IS_TESTNET, TONCENTER_API_KEY).then(() => {
+            spinner.remove();
+            rows.forEach(row => row.style.display = '');
+        });
     }
 
     // STATE
@@ -780,8 +773,10 @@
 
     /** @type {number} */
     let reloadTimeoutId = 0;
+    let addressLoadVersion = 0;
 
     const clear = () => {
+        addressLoadVersion++;
         currentAddress = null;
         currentAddressIsWallet = false;
         vestingWallet = null;
@@ -917,6 +912,8 @@
      * @param address   {string}
      */
     const setAddress = (address) => {
+        const version = ++addressLoadVersion;
+        const isCurrent = () => version === addressLoadVersion;
         currentAddress = address;
         currentAddressIsWallet = false;
         vestingWallet = null;
@@ -926,10 +923,11 @@
         bemoV2JettonWalletAddress = null;
         bemoV1JettonWalletAddress = null;
 
-        $('.address_header').innerText = 'Address';
+        $('.address_header').innerText = '';
+        $('#addressScreen').classList.add('address-pending');
         $('#address_info').innerText = '';
         showScreen('addressScreen');
-        $('#address_userAddress').innerHTML = `<a href="${scanLink(address)}" target="_blank">${formatAddress(address)}</a>`;
+        $('#address_userAddress').innerHTML = `<a target="_blank" style="display: none" aria-busy="true" aria-label="Loading address"></a>`;
         toggle($('#wallet_createButton'), false);
         toggle($('#vesting_container'), false);
         toggle($('#address_loading'), true);
@@ -938,7 +936,12 @@
 
         clearTimeout(reloadTimeoutId);
 
+        const addressLink = $('#address_userAddress a');
+        let addressReady = VestingDisplayAddress.setLinks([addressLink], [address], IS_TESTNET, TONCENTER_API_KEY, isCurrent);
+        let displayAccountState = null;
+
         const loadAddress = async () => {
+            if (!isCurrent()) return;
             let walletInfo;
 
             try {
@@ -947,56 +950,76 @@
                 console.error(e);
             }
 
-            if (address !== currentAddress) return;
+            if (!isCurrent()) return;
+
+            if (walletInfo) {
+                if (displayAccountState !== null && displayAccountState !== walletInfo.account_state) {
+                    $('#addressScreen').classList.add('address-pending');
+                    toggle($('#address_loading'), true);
+                    addressReady = VestingDisplayAddress.setLinks([addressLink], [address], IS_TESTNET, TONCENTER_API_KEY, isCurrent);
+                }
+                displayAccountState = walletInfo.account_state;
+            }
 
             console.log(walletInfo);
 
             try {
-                stakingJettonWalletAddress = await getStakingJettonWalletAddress(address);
+                const result = await getStakingJettonWalletAddress(address);
+                if (!isCurrent()) return;
+                stakingJettonWalletAddress = result;
             } catch (e) {
                 console.error("Error fetching stakingJetton wallet:", e);
             }
 
             try {
-                hipoJettonWalletAddress = await getHipoJettonWalletAddress(address);
+                const result = await getHipoJettonWalletAddress(address);
+                if (!isCurrent()) return;
+                hipoJettonWalletAddress = result;
             } catch (e) {
                 console.error("Error fetching hipoJetton wallet:", e);
             }
 
             try {
-                ktonJettonWalletAddress = await getKTONJettonWalletAddress(address);
+                const result = await getKTONJettonWalletAddress(address);
+                if (!isCurrent()) return;
+                ktonJettonWalletAddress = result;
             } catch (e) {
                 console.error("Error fetching KTON Jetton wallet:", e);
             }
 
             try {
-                bemoV2JettonWalletAddress = await getBemoJettonWalletAddress(address, 'v2');
+                const result = await getBemoJettonWalletAddress(address, 'v2');
+                if (!isCurrent()) return;
+                bemoV2JettonWalletAddress = result;
             } catch (e) {
                 console.error("Error fetching Bemo v2 Jetton wallet:", e);
             }
 
             try {
-                bemoV1JettonWalletAddress = await getBemoJettonWalletAddress(address, 'v1');
+                const result = await getBemoJettonWalletAddress(address, 'v1');
+                if (!isCurrent()) return;
+                bemoV1JettonWalletAddress = result;
             } catch (e) {
                 console.error("Error fetching Bemo v1 Jetton wallet:", e);
             }
 
+            if (!isCurrent()) return;
+
             if (!walletInfo) {
 
-                toggle($('#address_loading'), false);
+                $('.address_header').innerText = 'Address';
                 $('#address_info').innerText = `Can't get this address. Try again..`;
-                reloadTimeoutId = setTimeout(loadAddress, 5 * 1000); // reload after 5 seconds
+                return true;
 
             } else if (walletInfo.account_state === 'uninitialized') {
 
-                toggle($('#address_loading'), false);
+                $('.address_header').innerText = 'Address';
                 $('#address_info').innerText = 'Address uninitialized yet';
-                reloadTimeoutId = setTimeout(loadAddress, 5 * 1000); // reload after 5 seconds
+                return true;
 
             } else if (walletInfo.wallet === true) {
 
                 currentAddressIsWallet = true;
-                toggle($('#address_loading'), false);
                 $('.address_header').innerText = 'Wallet';
                 toggle($('#wallet_createButton'), true);
                 $('#address_info').innerHTML = 'This is a normal wallet.<br>' +
@@ -1004,7 +1027,7 @@
 
             } else {
                 const addressInfo = await tonweb.provider.getAddressInfo(address);
-                if (address !== currentAddress) return;
+                if (!isCurrent()) return;
 
                 /** @type {string} */
                 const code098hash = '28030eb57f905fda5cbdc1b08955faf53065759063b958f36c6f861b2bcfc7be';
@@ -1026,9 +1049,11 @@
                 const VestingWalletClass = TonWeb.LockupWallets.VestingWalletV1;
                 /** @type {string} */
                 const vestingWalletCodeHash = await getCodeHash(VestingWalletClass.codeHex);
+                if (!isCurrent()) return;
 
                 /** @type {string} */
                 const addressInfoCodeHash = await getCodeHash(TonWeb.utils.base64ToBytes(addressInfo.code));
+                if (!isCurrent()) return;
 
                 if (addressInfoCodeHash === code098hash) {
                     console.log('Its not production vesting-v0.98 smart contract. Please use vesting-v1.00');
@@ -1039,7 +1064,6 @@
 
                 if (addressInfoCodeHash === MULTISIG_V2_CODE_HASH) {
 
-                    toggle($('#address_loading'), false);
                     $('.address_header').innerText = 'Multisig Wallet';
                     toggle($('#wallet_createButton'), true);
                     $('#address_info').innerHTML = 'This is a multisig wallet.<br>' +
@@ -1053,7 +1077,9 @@
 
                     /** @type {BN} */
                     const lockedAmount = await newVestingWallet.getLockedAmount(Math.floor(Date.now() / 1000));
+                    if (!isCurrent()) return;
                     const vestingData = await newVestingWallet.getVestingData();
+                    if (!isCurrent()) return;
                     console.log(vestingData);
 
                     vestingData.index = 0;
@@ -1063,29 +1089,8 @@
                     vestingData.ownerAddress = vestingData.ownerAddress.toString(true, true, false, IS_TESTNET);
                     vestingData.vestingSenderAddress = vestingData.vestingSenderAddress.toString(true, true, false, IS_TESTNET);
                     const whitelist = await newVestingWallet.getWhitelist();
+                    if (!isCurrent()) return;
                     vestingData.whitelist = [];
-
-                    /**
-                     * @param address   {string}
-                     * @return {Promise<boolean>}
-                     */
-                    const checkIsWallet = async (address) => {
-                        const value = localStorage.getItem('format_' + address);
-                        if (value === 'true' || value === 'false') {
-                            return value === 'true';
-                        }
-                        const walletInfoRaw = await fetch(TONCENTER_INDEX_URL + 'wallet?address=' + address, {
-                            method: 'GET',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-API-Key': TONCENTER_API_KEY
-                            },
-                        });
-                        const walletInfo = await walletInfoRaw.json();
-                        const isWallet = (walletInfo.wallet_type && walletInfo.wallet_type.startsWith('wallet')) || (walletInfo.status === 'uninit');
-                        localStorage.setItem('format_' + address, isWallet.toString());
-                        return isWallet;
-                    }
 
                     if (stakingJettonWalletAddress) {
                         const unstakeStakingJettonBalanceEl = $('#unstakePopup_stakingJettonWalletBalance');
@@ -1099,6 +1104,7 @@
                         try {
                             const stakingJettonWallet = new TonWeb.token.jetton.JettonWallet(tonweb.provider, { address: stakingJettonWalletAddress });
                             const stakingJettonWalletData = await stakingJettonWallet.getData();
+                            if (!isCurrent()) return;
 
                             vestingData.jettonBalance = stakingJettonWalletData.balance;
 
@@ -1110,9 +1116,6 @@
                         } catch (e) {
                             // Can't get stakingJetton wallet data
                         }
-
-                        // force isWallet flag to false to render it correctly in whitelist
-                        localStorage.setItem('format_' + (new TonWeb.utils.Address(stakingJettonWalletAddress).toString(false)), 'false');
                     }
 
                     if (hipoJettonWalletAddress) {
@@ -1127,6 +1130,7 @@
                         try {
                             const hipoJettonWallet = new TonWeb.token.jetton.JettonWallet(tonweb.provider, { address: hipoJettonWalletAddress });
                             const hipoJettonWalletData = await hipoJettonWallet.getData();
+                            if (!isCurrent()) return;
 
                             vestingData.hipoBalance = hipoJettonWalletData.balance;
 
@@ -1138,9 +1142,6 @@
                         } catch (e) {
                             // Can't get hipoJetton wallet data
                         }
-
-                        // force isWallet flag to false to render it correctly in whitelist
-                        localStorage.setItem('format_' + (new TonWeb.utils.Address(hipoJettonWalletAddress).toString(false)), 'false');
                     }
 
                     if (ktonJettonWalletAddress) {
@@ -1155,6 +1156,7 @@
                         try {
                             const ktonJettonWallet = new TonWeb.token.jetton.JettonWallet(tonweb.provider, { address: ktonJettonWalletAddress });
                             const ktonJettonWalletData = await ktonJettonWallet.getData();
+                            if (!isCurrent()) return;
 
                             vestingData.ktonBalance = ktonJettonWalletData.balance;
 
@@ -1166,9 +1168,6 @@
                         } catch (e) {
                             // Can't get KTON Jetton wallet data
                         }
-
-                        // force isWallet flag to false to render it correctly in whitelist
-                        localStorage.setItem('format_' + (new TonWeb.utils.Address(ktonJettonWalletAddress).toString(false)), 'false');
                     }
 
                     if (bemoV2JettonWalletAddress) {
@@ -1183,6 +1182,7 @@
                         try {
                             const bemoJettonWallet = new TonWeb.token.jetton.JettonWallet(tonweb.provider, { address: bemoV2JettonWalletAddress });
                             const bemoJettonWalletData = await bemoJettonWallet.getData();
+                            if (!isCurrent()) return;
 
                             vestingData.bemoV2Balance = bemoJettonWalletData.balance;
 
@@ -1194,9 +1194,6 @@
                         } catch (e) {
                             // Can't get Bemo v2 Jetton wallet data
                         }
-
-                        // force isWallet flag to false to render it correctly in whitelist
-                        localStorage.setItem('format_' + (new TonWeb.utils.Address(bemoV2JettonWalletAddress).toString(false)), 'false');
                     }
 
                     if (bemoV1JettonWalletAddress) {
@@ -1211,6 +1208,7 @@
                         try {
                             const bemoJettonWallet = new TonWeb.token.jetton.JettonWallet(tonweb.provider, { address: bemoV1JettonWalletAddress });
                             const bemoJettonWalletData = await bemoJettonWallet.getData();
+                            if (!isCurrent()) return;
 
                             vestingData.bemoV1Balance = bemoJettonWalletData.balance;
 
@@ -1222,30 +1220,28 @@
                         } catch (e) {
                             // Can't get Bemo v1 Jetton wallet data
                         }
-
-                        // force isWallet flag to false to render it correctly in whitelist
-                        localStorage.setItem('format_' + (new TonWeb.utils.Address(bemoV1JettonWalletAddress).toString(false)), 'false');
                     }
 
                     for (const address of whitelist) {
-                        const isWallet = await checkIsWallet(address.toString(false));
-                        vestingData.whitelist.push(address.toString(true, true, !isWallet, IS_TESTNET));
+                        vestingData.whitelist.push(address.toString(true, true, true, IS_TESTNET));
                     }
-                    if (address !== currentAddress) return;
+                    if (!isCurrent()) return;
                     hidePopup(); // close probably opened popups related to old vestingWallet
                     vestingWallet = newVestingWallet;
 
                     $('#address_info').innerText = '';
-                    toggle($('#address_loading'), false);
                     $('.address_header').innerText = 'Vesting';
                     toggle($('#vesting_container'), true);
 
                     $('#vesting_container').innerHTML = '';
-                    $('#vesting_container').appendChild(renderVestingWallet(vestingData));
+                    const view = renderVestingWallet(vestingData);
+                    $('#vesting_container').appendChild(view.element);
+                    await view.addressesReady;
+                    if (!isCurrent()) return;
 
                 } else {
 
-                    toggle($('#address_loading'), false);
+                    $('.address_header').innerText = 'Address';
                     $('#address_info').innerText = 'Unknown smart contract on this address';
                     toggle($('#wallet_createButton'), IS_CUSTOM_OWNERS);
 
@@ -1253,7 +1249,26 @@
             }
         }
 
-        loadAddress();
+        const reloadAddress = async () => {
+            let shouldReload = false;
+            try {
+                shouldReload = await loadAddress();
+            } catch (error) {
+                if (!isCurrent()) return;
+                console.error(error);
+                $('.address_header').innerText = 'Address';
+                $('#address_info').innerText = `Can't get this address. Try again..`;
+                toggle($('#vesting_container'), false);
+                toggle($('#wallet_createButton'), false);
+            }
+            await addressReady;
+            if (!isCurrent()) return;
+            $('#addressScreen').classList.remove('address-pending');
+            toggle($('#address_loading'), false);
+            if (shouldReload) reloadTimeoutId = setTimeout(reloadAddress, 5 * 1000);
+        };
+
+        reloadAddress();
     }
 
     /**
@@ -1326,7 +1341,8 @@
         }
         const newCreateState = {
             myAddress,
-            currentAddress
+            currentAddress,
+            addressLoadVersion
         };
         showScreen('loadingScreen');
 
@@ -1342,13 +1358,13 @@
             }
         }
 
-        if (!publicKey) {
-            alert('Cant get publicKey of target wallet');
-            showScreen('addressScreen');
+        if (addressLoadVersion !== newCreateState.addressLoadVersion || currentScreen !== 'loadingScreen' || myAddress !== newCreateState.myAddress || currentAddress !== newCreateState.currentAddress) {
             return;
         }
 
-        if (currentScreen !== 'loadingScreen' || myAddress !== newCreateState.myAddress || currentAddress !== newCreateState.currentAddress) {
+        if (!publicKey) {
+            alert('Cant get publicKey of target wallet');
+            showScreen('addressScreen');
             return;
         }
 
@@ -1359,7 +1375,8 @@
         console.log('user address ', userAddress);
         console.log('user key ', userPublicKey);
 
-        renderCreateScreen();
+        await renderCreateScreen();
+        if (addressLoadVersion !== newCreateState.addressLoadVersion || currentScreen !== 'loadingScreen' || myAddress !== newCreateState.myAddress || currentAddress !== newCreateState.currentAddress) return;
         showScreen('createScreen');
     });
 
@@ -1367,7 +1384,7 @@
 
     /**
      * @param vestingWalletInfo {{index: number, address: string, balance: BN, lockedAmount: BN, ownerAddress: string, vestingSenderAddress: string, whitelist: string[],  vestingStartTime: number, vestingTotalDuration: number, unlockPeriod: number, cliffDuration: number, vestingTotalAmount: BN}}
-     * @return {HTMLDivElement}
+     * @return {{element: HTMLDivElement, addressesReady: Promise<void[]>}}
      */
     const renderVestingWallet = (vestingWalletInfo) => {
         /** @type {BN} */
@@ -1436,7 +1453,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         Vesting for user:
     </div>
     <div class="vesting_value">
-        <a href="${scanLink(vestingWalletInfo.ownerAddress)}" target="_blank" class="address vesting_address">${formatAddress(vestingWalletInfo.ownerAddress)}</a>
+        <a target="_blank" class="address vesting_address" aria-busy="true" aria-label="Loading address"></a>
     </div>
 
     <div class="vesting_key">
@@ -1549,7 +1566,10 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         </div>` : ``}
 </div>`
 
-        renderWhitelist(div.querySelector('.create_whitelist-container'), whitelist, vestingWalletInfo.vestingSenderAddress, false);
+        const addressesReady = Promise.all([
+            VestingDisplayAddress.setLinks([div.querySelector('.vesting_address')], [vestingWalletInfo.ownerAddress], IS_TESTNET, TONCENTER_API_KEY),
+            renderWhitelist(div.querySelector('.create_whitelist-container'), whitelist, vestingWalletInfo.vestingSenderAddress, false),
+        ]);
 
         // div.querySelector('#vesting_all-parameters-btn' + index).addEventListener('click', () => {
         //     const needShow = $('#vesting_all-parameters-container' + index).style.display !== 'flex';
@@ -1628,7 +1648,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
             showPopup('bemoV1UnstakePopup');
         });
 
-        return div;
+        return { element: div, addressesReady };
     }
 
     // STAKE AND UNSTAKE
@@ -2241,7 +2261,12 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         }
     }
 
+    let createUpdateVersion = 0;
     const updateCreate = async () => {
+        const version = ++createUpdateVersion;
+        const currentUser = userAddress;
+        const currentSender = myAddress;
+        const isCurrent = () => version === createUpdateVersion && userAddress === currentUser && currentAddress === currentUser && myAddress === currentSender;
         $('#create_createButton').disabled = true;
 
         createState.info = null;
@@ -2258,15 +2283,21 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         if (createState.info) {
             const vestingWallet = getVestingInstance();
             const vestingWalletAddress = await vestingWallet.getAddress();
+            if (!isCurrent()) return;
             const stakingJettonWalletAddress = await getStakingJettonWalletAddress(vestingWalletAddress.toString(true, true, true, IS_TESTNET));
+            if (!isCurrent()) return;
             const stakingJettonWalletAddressSting = stakingJettonWalletAddress.toString(true, true, true, IS_TESTNET);
             const hipoJettonWalletAddress = await getHipoJettonWalletAddress(vestingWalletAddress.toString(true, true, true, IS_TESTNET));
+            if (!isCurrent()) return;
             const hipoJettonWalletAddressString = hipoJettonWalletAddress.toString(true, true, true, IS_TESTNET);
             const ktonJettonWalletAddress = await getKTONJettonWalletAddress(vestingWalletAddress.toString(true, true, true, IS_TESTNET));
+            if (!isCurrent()) return;
             const ktonJettonWalletAddressString = ktonJettonWalletAddress.toString(true, true, true, IS_TESTNET);
             const bemoV2JettonWalletAddress = await getBemoJettonWalletAddress(vestingWalletAddress.toString(true, true, true, IS_TESTNET), 'v2');
+            if (!isCurrent()) return;
             const bemoV2JettonWalletAddressString = bemoV2JettonWalletAddress.toString(true, true, true, IS_TESTNET);
             const bemoV1JettonWalletAddress = await getBemoJettonWalletAddress(vestingWalletAddress.toString(true, true, true, IS_TESTNET), 'v1');
+            if (!isCurrent()) return;
             const bemoV1JettonWalletAddressString = bemoV1JettonWalletAddress.toString(true, true, true, IS_TESTNET);
 
             if (createState.whitelistAddresses.includes(createState.stakingJettonWalletAddress) || 
@@ -2310,7 +2341,9 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         createState.whitelistAddresses = [];
         createState.info = null;
 
-        $('#create_userAddress').innerHTML = `<a href="${scanLink(userAddress)}" target="_blank">${formatAddress(userAddress)}</a>`;
+        $('#create_userAddress').innerHTML = `<a target="_blank" style="display: none" aria-busy="true" aria-label="Loading address"></a>`;
+        const createUserAddress = userAddress;
+        const addressReady = VestingDisplayAddress.setLinks([$('#create_userAddress a')], [createUserAddress], IS_TESTNET, TONCENTER_API_KEY, () => userAddress === createUserAddress && currentAddress === createUserAddress);
 
         $('#create_inMasterchainCheckbox').checked = false;
         $('#create_startTimeInput').value = nowToInputValue();
@@ -2320,14 +2353,16 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         $('#create_cliffDurationInput').value = '';
         $('#create_unlockPeriodInput').value = '';
 
-        renderCreateWhitelist();
+        const whitelistReady = renderCreateWhitelist();
         updateCreate();
+        return Promise.all([addressReady, whitelistReady]);
     }
 
     // ADD WHITELIST POPUP
 
     /** @type {string | null} */
     let addressForCheck = null;
+    let whitelistCheckVersion = 0;
 
     /**
      * @return {Promise<void>}
@@ -2339,10 +2374,11 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         if (value && TonWeb.utils.Address.isValid(value)) {
             if (addressForCheck !== value) {
                 addressForCheck = value;
+                const version = ++whitelistCheckVersion;
                 $('#whitelist_info').innerText = 'Loading..';
                 /** @type {{status: 'SUCCESS' | 'INVALID' | 'NO_RESPONSE', text: string}} */
-                const info = await checkSmartContract(tonweb, new TonWeb.utils.Address(value));
-                if (value === addressForCheck) {
+                const info = await checkSmartContract(tonweb, new TonWeb.utils.Address(value), IS_TESTNET, TONCENTER_API_KEY);
+                if (value === addressForCheck && version === whitelistCheckVersion) {
                     // todo: disable Add button if INVALID or NO_RESPONSE
                     // todo: disable Add button if single-nominator.owner !== vestingWalletAddress
                     $('#whitelist_info').innerText = info.text;
@@ -2351,6 +2387,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         } else {
             $('#whitelist_info').innerText = 'Invalid address';
             addressForCheck = null;
+            whitelistCheckVersion++;
         }
     }
 
@@ -2372,6 +2409,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
         $('#whitelist_useBemoV1TreasuryButton').style.display = isCreate ? 'none' : 'block';
         $('#whitelist_useBemoV1JettonButton').style.display = isCreate ? 'none' : 'block';
         addressForCheck = null;
+        whitelistCheckVersion++;
         $('#whitelist_addressInput').value = '';
         $('#whitelist_info').innerText = '';
         showPopup('addWhitelistPopup');
@@ -2380,7 +2418,7 @@ ${isOwner ? `<div class="badge panel-badge badge-blue">You are owner</div>` : ``
     // CREATE WHITELIST
 
     const renderCreateWhitelist = () => {
-        renderWhitelist($('#create_whitelist-container'), [myAddress].concat(createState.whitelistAddresses), myAddress, true);
+        return renderWhitelist($('#create_whitelist-container'), [myAddress].concat(createState.whitelistAddresses), myAddress, true);
     }
 
     /**
