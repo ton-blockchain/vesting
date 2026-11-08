@@ -256,6 +256,10 @@ input::-webkit-date-and-time-value {
     padding: 20px;
 }
 
+#addressScreen.address-pending > :not(#address_loading) {
+    display: none !important;
+}
+
 .address_header {
     font-weight: bold;
     font-size: 24px;
